@@ -32,6 +32,9 @@ public class OGScrapperUtils {
     }
 
     public static Charset charsetFrom(HttpHeaders headers) {
+        if (headers == null) {
+            return StandardCharsets.UTF_8;
+        }
         String type = headers.firstValue("Content-type")
                 .orElse("text/html; charset=utf-8");
         int i = type.indexOf(";");
