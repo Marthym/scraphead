@@ -1,6 +1,6 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
-import fr.ght1pc9kc.scraphead.core.OpenGraphPlugin;
+import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.http.WebResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,9 +20,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenGraphPluginTest {
+public class ScraperPluginTest {
 
-    private final OpenGraphPlugin plugin = mock(OpenGraphPlugin.class);
+    private final ScraperPlugin plugin = mock(ScraperPlugin.class);
 
     private OpenGraphScrapper tested;
 

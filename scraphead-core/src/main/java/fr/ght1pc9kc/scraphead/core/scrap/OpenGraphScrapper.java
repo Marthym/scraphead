@@ -1,7 +1,7 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
 import fr.ght1pc9kc.scraphead.core.HeadScrapper;
-import fr.ght1pc9kc.scraphead.core.OpenGraphPlugin;
+import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.http.WebRequest;
 import fr.ght1pc9kc.scraphead.core.model.OpenGraph;
@@ -38,12 +38,12 @@ public final class OpenGraphScrapper implements HeadScrapper {
 
     private final OpenGraphMetaReader ogReader;
 
-    private final List<OpenGraphPlugin> scrapperPlugins;
+    private final List<ScraperPlugin> scrapperPlugins;
 
     public Mono<OpenGraph> scrap(URI location) {
         Map<String, List<String>> headers = new HashMap<>();
         List<HttpCookie> cookies = new ArrayList<>();
-        for (OpenGraphPlugin scrapperPlugin : scrapperPlugins) {
+        for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
             if (scrapperPlugin.isApplicable(location)) {
                 scrapperPlugin.additionalHeaders().forEach((k, v) -> {
                     List<String> values = headers.computeIfAbsent(k, n -> new ArrayList<>());
@@ -102,7 +102,7 @@ public final class OpenGraphScrapper implements HeadScrapper {
 
                 .flatMap(og -> {
                     Mono<OpenGraph> resultOg = Mono.just(og);
-                    for (OpenGraphPlugin scrapperPlugin : scrapperPlugins) {
+                    for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
                         if (scrapperPlugin.isApplicable(location)) {
                             resultOg = resultOg.flatMap(scrapperPlugin::postTreatment);
                         }

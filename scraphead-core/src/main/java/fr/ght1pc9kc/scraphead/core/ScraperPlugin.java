@@ -13,7 +13,7 @@ import java.util.Map;
  * <p>
  * A OG Scrapper Plugin allow to include additional Cookie or Headers into scrapping http request before send it.
  */
-public interface OpenGraphPlugin {
+public interface ScraperPlugin {
     default String name() {
         return this.getClass().getSimpleName() + " OpenGraph scrapper plugin";
     }

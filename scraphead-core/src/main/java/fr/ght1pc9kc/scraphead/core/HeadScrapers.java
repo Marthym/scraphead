@@ -9,6 +9,9 @@ import lombok.experimental.UtilityClass;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Constructor for {@link HeadScrapper}
+ */
 @UtilityClass
 public class HeadScrapers {
     public static HeadScraperBuilder builder(WebClient webClient) {
@@ -19,9 +22,15 @@ public class HeadScrapers {
     public static class HeadScraperBuilder {
         private final WebClient webClient;
         private final OpenGraphMetaReader ogReader;
-        private final List<OpenGraphPlugin> scrapperPlugins = new ArrayList<>();
+        private final List<ScraperPlugin> scrapperPlugins = new ArrayList<>();
 
-        public HeadScraperBuilder registerPlugin(OpenGraphPlugin plugin) {
+        /**
+         * Register a {@link ScraperPlugin} to the {@link HeadScrapper}
+         *
+         * @param plugin The plugin to register
+         * @return  The builder
+         */
+        public HeadScraperBuilder registerPlugin(ScraperPlugin plugin) {
             scrapperPlugins.add(plugin);
             return this;
         }
