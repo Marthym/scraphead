@@ -6,8 +6,27 @@
 
     <groupId>fr.ght1pc9kc</groupId>
     <artifactId>scraphead</artifactId>
-    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Scraphead</name>
+    <description>
+        Scraphead allow to scrap html frm URL in order to retrieve OpenGraph, Twitter Card and many other meta
+        information from HTML head tag.
+    </description>
+    <url>https://github.com/Marthym/scraphead</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://choosealicense.com/licenses/mit/</url>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:git@github.com:Marthym/scraphead.git</connection>
+        <developerConnection>scm:git:git@github.com:Marthym/scraphead.git</developerConnection>
+        <url>https://github.com/Marthym/scraphead</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <modules>
         <module>scraphead-core</module>
@@ -27,6 +46,13 @@
         <junit.version>5.8.2</junit.version>
         <assertj.version>3.22.0</assertj.version>
         <mockito.version>4.3.1</mockito.version>
+
+        <maven-compiler-plugin.version>3.10.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+        <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
+
+        <surefire.argline.opens/>
     </properties>
 
     <developers>
@@ -113,4 +139,123 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <release>${maven.compiler.source}</release>
+                        <parameters>true</parameters>
+                        <generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>${surefire.argline.opens}</argLine>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>
+                            --illegal-access=permit
+                        </argLine>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>sonar</id>
+            <properties>
+                <sonar.projectKey>Marthym_scraphead</sonar.projectKey>
+                <sonar.organization>ght1pc9kc-fr</sonar.organization>
+                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+                <sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
+                <sonar.coverage.jacoco.xmlReportPaths>**/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+                <sonar.coverage.exclusions>**/*.html</sonar.coverage.exclusions>
+                <sonar.exclusions>**/*.html</sonar.exclusions>
+                <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
+                <sonar.java.libraries>${project.build.directory}/dependency</sonar.java.libraries>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${jacoco-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>aggregate</id>
+                                <goals>
+                                    <goal>report-aggregate</goal>
+                                </goals>
+                                <phase>verify</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <argLine>
+                                ${surefire.argline.opens}
+                                ${argLine}
+                            </argLine>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>${maven-dependency-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>copy-dependencies</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <includeArtifactIds>lombok</includeArtifactIds>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
