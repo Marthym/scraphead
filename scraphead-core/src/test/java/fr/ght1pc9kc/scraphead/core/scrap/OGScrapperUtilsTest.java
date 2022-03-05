@@ -22,7 +22,7 @@ class OGScrapperUtilsTest {
     })
     void should_remove_querystring_from_uri(String uri, String expected) {
         URI actual = OGScrapperUtils.removeQueryString(URI.create(uri));
-        Assertions.assertThat(actual.toString()).isEqualTo(expected);
+        Assertions.assertThat(actual).hasToString(expected);
     }
 
     @ParameterizedTest
@@ -43,9 +43,9 @@ class OGScrapperUtilsTest {
         InputStream is = OpenGraphScrapperTest.class.getResourceAsStream(htmlFile);
         Assertions.assertThat(is).isNotNull();
         List<Meta> actuals = OGScrapperUtils.extractMetaHeaders(new String(is.readAllBytes()));
-        Assertions.assertThat(actuals).isNotNull();
-
-        Assertions.assertThat(actuals).containsAll(expected);
+        Assertions.assertThat(actuals)
+                .isNotNull()
+                .containsAll(expected);
     }
 
     private static Stream<Arguments> parametersForShould_extract_meta_headers() {

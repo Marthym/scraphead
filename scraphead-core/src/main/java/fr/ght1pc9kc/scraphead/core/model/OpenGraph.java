@@ -11,6 +11,7 @@ import java.util.Locale;
 @With
 @Value
 @Builder
+@SuppressWarnings("java:S1104")
 public class OpenGraph {
     public String title;
     public OGType type;

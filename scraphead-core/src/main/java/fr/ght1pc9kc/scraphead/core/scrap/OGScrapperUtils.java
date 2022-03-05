@@ -44,7 +44,7 @@ public class OGScrapperUtils {
             String value = (eqIdx >= 0) ? type.substring(eqIdx + 1) : null;
             if (value == null) return StandardCharsets.UTF_8;
             return Charset.forName(value);
-        } catch (Throwable x) {
+        } catch (Exception x) {
             log.trace("Can't find charset in {} ({})", type, x);
             return StandardCharsets.UTF_8;
         }
@@ -92,6 +92,8 @@ public class OGScrapperUtils {
                         case META_CONTENT:
                             metaValue = value;
                             break;
+                        default:
+                            log.debug("prop value ({}) not in " + META_NAME + ", " + META_PROPERTY + ", " + META_CONTENT, prop);
                     }
                 }
 

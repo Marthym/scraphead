@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class OpenGraphMetaReaderTest {
+class OpenGraphMetaReaderTest {
     private final OpenGraphMetaReader tested = new OpenGraphMetaReader();
 
     @Test

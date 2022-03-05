@@ -57,7 +57,7 @@ public final class OpenGraphMetaReader {
                     break;
                 case Tags.OG_LOCALE:
                     if (m.content() != null) {
-                        builder.locale(Locale.forLanguageTag(m.content().replaceAll("_", "-")));
+                        builder.locale(Locale.forLanguageTag(m.content().replace('_', '-')));
                     }
                     break;
                 default:

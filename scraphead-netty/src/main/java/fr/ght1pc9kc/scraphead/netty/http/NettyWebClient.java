@@ -77,7 +77,7 @@ public class NettyWebClient implements WebClient {
 
                     return content.asByteArray().map(buff -> {
                         Map<String, List<String>> headers = new HashMap<>();
-                        res.responseHeaders().forEach((h) ->
+                        res.responseHeaders().forEach(h ->
                                 headers.computeIfAbsent(h.getKey().toLowerCase(), k -> new ArrayList<>()).add(h.getValue()));
                         return new WebResponse(res.status().code(), HttpHeaders.of(headers, (k, v) -> true), Flux.just(ByteBuffer.wrap(buff)));
                     });

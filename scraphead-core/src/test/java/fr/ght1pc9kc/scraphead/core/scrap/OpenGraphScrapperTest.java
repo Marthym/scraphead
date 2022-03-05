@@ -8,6 +8,8 @@ import fr.ght1pc9kc.scraphead.core.model.OpenGraph;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -124,21 +126,14 @@ class OpenGraphScrapperTest {
         );
     }
 
-    @Test
-    void should_parse_no_encoding_file() {
-        URI page = URI.create("https://blog.ght1pc9kc.fr/no-encoding-file.html");
-        StepVerifier.create(tested.scrap(page)).verifyComplete();
-    }
-
-    @Test
-    void should_scrap_not_found() {
-        URI page = URI.create("https://blog.ght1pc9kc.fr/not-found.html");
-        StepVerifier.create(tested.scrap(page)).verifyComplete();
-    }
-
-    @Test
-    void should_scrap_not_html() {
-        URI page = URI.create("https://blog.ght1pc9kc.fr/podcast.mp3");
+    @ParameterizedTest
+    @CsvSource({
+            "https://blog.ght1pc9kc.fr/no-encoding-file.html",
+            "https://blog.ght1pc9kc.fr/not-found.html",
+            "https://blog.ght1pc9kc.fr/podcast.mp3"
+    })
+    void should_parse_no_encoding_file(String url) {
+        URI page = URI.create(url);
         StepVerifier.create(tested.scrap(page)).verifyComplete();
     }
 }
