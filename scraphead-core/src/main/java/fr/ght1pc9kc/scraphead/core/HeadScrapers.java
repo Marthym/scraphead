@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Constructor for {@link HeadScrapper}
+ * Builder for {@link HeadScrapper}
  */
 @UtilityClass
 public class HeadScrapers {

@@ -13,6 +13,7 @@
 
     <properties>
         <surefire.argline.opens>
+            --add-opens scraphead.core/fr.ght1pc9kc.scraphead.core=ALL-UNNAMED
             --add-opens scraphead.core/fr.ght1pc9kc.scraphead.core.scrap=ALL-UNNAMED
         </surefire.argline.opens>
     </properties>

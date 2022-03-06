@@ -1,5 +1,6 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
+import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.http.WebRequest;
 import fr.ght1pc9kc.scraphead.core.http.WebResponse;
@@ -30,15 +31,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OpenGraphScrapperTest {
     private final OpenGraphMetaReader ogReader = spy(new OpenGraphMetaReader());
     private OpenGraphScrapper tested;
 
+    private final WebClient webClient = mock(WebClient.class);
+
     @BeforeEach
     void setUp() {
-        WebClient webClient = mock(WebClient.class);
         when(webClient.send(any(WebRequest.class))).thenAnswer(invocation -> {
             WebRequest request = invocation.getArgument(0, WebRequest.class);
 
@@ -135,5 +138,32 @@ class OpenGraphScrapperTest {
     void should_parse_no_encoding_file(String url) {
         URI page = URI.create(url);
         StepVerifier.create(tested.scrap(page)).verifyComplete();
+    }
+
+    @Test
+    void should_use_plugin() throws MalformedURLException {
+        URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
+        OpenGraph og = OpenGraph.builder()
+                .title("De Paris à Toulouse")
+                .description("Déplacement des serveurs de l’infrastructure i-Run depuis Paris jusqu’à Toulouse chez " +
+                        "notre hébergeur FullSave. Nouvelles machines, nouvelle infra pour plus de résilience et une " +
+                        "meilleure tenue de la charge sur les sites publics comme sur le backoffice.")
+                .type(OGType.ARTICLE)
+                .url(new URL("https://blog.i-run.si/posts/silife/infra-de-paris-a-toulouse/"))
+                .image(URI.create("https://blog.i-run.si/posts/silife/infra-de-paris-a-toulouse/featured.jpg"))
+                .build();
+
+        ScraperPlugin plugin = mock(ScraperPlugin.class);
+        when(plugin.additionalCookies()).thenReturn(List.of());
+        when(plugin.additionalHeaders()).thenReturn(Map.of("X-Dummies", "DUMMY HEADER"));
+        when(plugin.isApplicable(any())).thenReturn(true);
+        when(plugin.postTreatment(any())).thenReturn(Mono.just(og));
+
+        OpenGraphScrapper pluginTested = new OpenGraphScrapper(webClient, ogReader, List.of(plugin));
+        StepVerifier.create(pluginTested.scrap(page)).expectNext(og).verifyComplete();
+
+        verify(plugin).additionalCookies();
+        verify(plugin).additionalHeaders();
+        verify(plugin).postTreatment(any());
     }
 }
