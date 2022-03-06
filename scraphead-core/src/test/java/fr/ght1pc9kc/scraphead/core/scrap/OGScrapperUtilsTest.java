@@ -1,6 +1,6 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
-import fr.ght1pc9kc.scraphead.core.model.Meta;
+import fr.ght1pc9kc.scraphead.core.scrap.model.Meta;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

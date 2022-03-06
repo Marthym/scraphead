@@ -1,6 +1,6 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
-import fr.ght1pc9kc.scraphead.core.model.Meta;
+import fr.ght1pc9kc.scraphead.core.scrap.model.Meta;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 

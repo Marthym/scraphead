@@ -22,6 +22,7 @@ the web client.
 * Read [OpenGraph](https://ogp.me/)
   and [Twitter Card](https://developer.twitter.com/en/docs/twitter-for-websites/cards/guides/getting-started), and more
 * Allow plugins for specific treatment *(depending on domain for example)*
+* build for Java 17 and modules
 
 ## Usage
 

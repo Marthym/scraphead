@@ -1,6 +1,6 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
-import fr.ght1pc9kc.scraphead.core.model.Meta;
+import fr.ght1pc9kc.scraphead.core.scrap.model.Meta;
 import fr.ght1pc9kc.scraphead.core.model.OGType;
 import fr.ght1pc9kc.scraphead.core.model.OpenGraph;
 import fr.ght1pc9kc.scraphead.core.model.Tags;
