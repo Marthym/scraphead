@@ -1,7 +1,9 @@
 module scraphead.netty {
     requires static lombok;
-    requires org.slf4j;
+
     requires scraphead.core;
+    requires org.slf4j;
+    requires org.reactivestreams;
     requires reactor.core;
     requires reactor.netty;
     requires reactor.netty.http;
