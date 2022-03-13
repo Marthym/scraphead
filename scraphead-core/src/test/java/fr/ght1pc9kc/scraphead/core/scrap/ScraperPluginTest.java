@@ -24,7 +24,7 @@ class ScraperPluginTest {
 
     private final ScraperPlugin plugin = mock(ScraperPlugin.class);
 
-    private OpenGraphScrapper tested;
+    private HeadScrapperImpl tested;
 
     @BeforeEach
     void setUp() {
@@ -35,13 +35,13 @@ class ScraperPluginTest {
                         HttpHeaders.of(Map.of("content-type", List.of("application/json")), (l, r) -> true),
                         Flux.empty()))
         );
-        this.tested = new OpenGraphScrapper(webClient, new OpenGraphMetaReader(), List.of(plugin));
+        this.tested = new HeadScrapperImpl(webClient, new OpenGraphMetaReader(), List.of(plugin));
     }
 
     @Test
     void should_use_plugin_for_scrapper() {
         StepVerifier.create(
-                tested.scrap(URI.create("https://www.youtube.com/watch?v=l9nh1l8ZIJQ"))
+                tested.scrapOpenGraph(URI.create("https://www.youtube.com/watch?v=l9nh1l8ZIJQ"))
         ).verifyComplete();
 
         verify(plugin, times(1)).additionalHeaders();

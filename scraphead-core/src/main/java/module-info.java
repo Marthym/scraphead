@@ -10,5 +10,8 @@ module scraphead.core {
 
     exports fr.ght1pc9kc.scraphead.core;
     exports fr.ght1pc9kc.scraphead.core.http;
-    exports fr.ght1pc9kc.scraphead.core.opengraph;
+    exports fr.ght1pc9kc.scraphead.core.model;
+    exports fr.ght1pc9kc.scraphead.core.model.opengraph;
+    exports fr.ght1pc9kc.scraphead.core.model.twitter;
+    exports fr.ght1pc9kc.scraphead.core.model.links;
 }

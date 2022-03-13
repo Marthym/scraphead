@@ -1,4 +1,4 @@
-package fr.ght1pc9kc.scraphead.core.opengraph;
+package fr.ght1pc9kc.scraphead.core.model.opengraph;
 
 import org.jetbrains.annotations.NotNull;
 

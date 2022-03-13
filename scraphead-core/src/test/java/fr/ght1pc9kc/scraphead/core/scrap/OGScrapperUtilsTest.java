@@ -1,17 +1,10 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
-import fr.ght1pc9kc.scraphead.core.scrap.model.Meta;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.util.List;
-import java.util.stream.Stream;
 
 class OGScrapperUtilsTest {
     @ParameterizedTest

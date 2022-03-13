@@ -2,7 +2,7 @@ package fr.ght1pc9kc.scraphead.core;
 
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.scrap.OpenGraphMetaReader;
-import fr.ght1pc9kc.scraphead.core.scrap.OpenGraphScrapper;
+import fr.ght1pc9kc.scraphead.core.scrap.HeadScrapperImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 
@@ -36,7 +36,7 @@ public class HeadScrapers {
         }
 
         public HeadScrapper build() {
-            return new OpenGraphScrapper(webClient, ogReader, scrapperPlugins);
+            return new HeadScrapperImpl(webClient, ogReader, scrapperPlugins);
         }
     }
 }

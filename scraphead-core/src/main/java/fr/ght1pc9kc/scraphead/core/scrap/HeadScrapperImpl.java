@@ -4,10 +4,14 @@ import fr.ght1pc9kc.scraphead.core.HeadScrapper;
 import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.http.WebRequest;
-import fr.ght1pc9kc.scraphead.core.opengraph.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.model.Metas;
+import fr.ght1pc9kc.scraphead.core.model.links.Links;
+import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.model.twitter.TwitterCard;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.Jsoup;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,11 +34,9 @@ import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.function.Predicate.not;
-
 @Slf4j
 @RequiredArgsConstructor
-public final class OpenGraphScrapper implements HeadScrapper {
+public final class HeadScrapperImpl implements HeadScrapper {
     private static final String HEAD_END_TAG = "</head>";
     private static final Pattern CHARSET_EXTRACT = Pattern.compile("<meta.*?charset=[\"']?([^\"']+)");
 
@@ -44,7 +46,27 @@ public final class OpenGraphScrapper implements HeadScrapper {
 
     private final List<ScraperPlugin> scrapperPlugins;
 
-    public Mono<OpenGraph> scrap(URI location) {
+    @Override
+    public Mono<Metas> scrap(URI location) {
+        return scrapHead(location);
+    }
+
+    @Override
+    public Mono<OpenGraph> scrapOpenGraph(URI location) {
+        return scrapHead(location).map(Metas::og);
+    }
+
+    @Override
+    public Mono<TwitterCard> scrapTwitterCard(URI location) {
+        return scrapHead(location).map(Metas::twitter);
+    }
+
+    @Override
+    public Mono<Links> scrapLinks(URI location) {
+        return scrapHead(location).map(Metas::links);
+    }
+
+    private Mono<Metas> scrapHead(URI location) {
         Map<String, List<String>> headers = new HashMap<>();
         List<HttpCookie> cookies = new ArrayList<>();
         for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
@@ -79,15 +101,14 @@ public final class OpenGraphScrapper implements HeadScrapper {
                 .map(StringBuilder::toString)
                 .doFirst(() -> log.trace("Receiving data from {}...", location))
 
-                .map(OGScrapperUtils::extractMetaHeaders)
-                .filter(not(List::isEmpty))
-                .map(metas -> ogReader.read(metas, location))
+                .map(html -> Jsoup.parseBodyFragment(html, location.toString()))
+                .map(ogReader::read)
 
                 .flatMap(og -> {
-                    Mono<OpenGraph> resultOg = Mono.just(og);
+                    Mono<Metas> resultOg = Mono.just(og);
                     for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
                         if (scrapperPlugin.isApplicable(location)) {
-                            resultOg = resultOg.flatMap(scrapperPlugin::postTreatment);
+                            resultOg = resultOg.flatMap(m -> scrapperPlugin.postTreatment(m.og()).map(m::withOg));
                         }
                     }
                     return resultOg;
