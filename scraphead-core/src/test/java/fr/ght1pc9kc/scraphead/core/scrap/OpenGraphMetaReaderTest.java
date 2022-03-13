@@ -1,9 +1,9 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
 import fr.ght1pc9kc.scraphead.core.scrap.model.Meta;
-import fr.ght1pc9kc.scraphead.core.model.OGType;
-import fr.ght1pc9kc.scraphead.core.model.OpenGraph;
-import fr.ght1pc9kc.scraphead.core.model.Tags;
+import fr.ght1pc9kc.scraphead.core.opengraph.OGType;
+import fr.ght1pc9kc.scraphead.core.opengraph.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.opengraph.Tags;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

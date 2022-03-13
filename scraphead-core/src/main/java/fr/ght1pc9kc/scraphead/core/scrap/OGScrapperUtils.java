@@ -8,7 +8,6 @@ import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -51,61 +50,9 @@ public class OGScrapperUtils {
     }
 
     public static List<Meta> extractMetaHeaders(String html) {
-        List<Meta> metas = new ArrayList<>();
-        for (String head : html.split("(<meta )")) {
-            try {
-                char[] chars = head.toCharArray();
-                int nextIdx = 0;
-                String metaProperty = null;
-                String metaValue = null;
-
-                while ((metaValue == null || metaProperty == null) || nextIdx < head.length()) {
-                    int eqIdx = head.indexOf('=', nextIdx);
-                    if (eqIdx < 0) {
-                        break;
-                    }
-                    String prop = head.substring(nextIdx, eqIdx).trim();
-                    StringBuilder valueBld = new StringBuilder(head.length() - eqIdx);
-                    char q = 0;
-                    nextIdx = eqIdx + 1;
-                    for (int i = nextIdx; i < chars.length; i++) {
-                        if ((q != '\'' && q != '"') && (chars[i] == '\'' || chars[i] == '"')) {
-                            q = chars[i];
-                            continue;
-                        } else if ((q == '\'' || q == '"') && (chars[i] == q)) {
-                            nextIdx = i + 1;
-                            break;
-                        }
-                        valueBld.append(chars[i]);
-                    }
-                    String value = valueBld.toString();
-
-                    switch (prop) {
-                        case META_NAME:
-                            if (metaProperty == null) {
-                                metaProperty = value;
-                            }
-                            break;
-                        case META_PROPERTY:
-                            metaProperty = value;
-                            break;
-                        case META_CONTENT:
-                            metaValue = value;
-                            break;
-                        default:
-                            log.debug("prop value ({}) not in " + META_NAME + ", " + META_PROPERTY + ", " + META_CONTENT, prop);
-                    }
-                }
-
-                if (metaProperty == null || metaValue == null) {
-                    continue;
-                }
-                metas.add(new Meta(metaProperty, metaValue));
-            } catch (Exception e) {
-                log.debug("Fail to parse meta {}", head);
-                log.debug("STACKTRACE", e);
-            }
-        }
-        return List.copyOf(metas);
+        return HtmlFragmentParser.parse(html).stream()
+                .filter(n -> "meta".equals(n.tag()) && (n.attr().containsKey(META_PROPERTY) || n.attr().containsKey(META_NAME)))
+                .map(n -> new Meta(n.attr().getOrDefault(META_PROPERTY, n.attr().get(META_NAME)), n.attr().get(META_CONTENT)))
+                .toList();
     }
 }

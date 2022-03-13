@@ -73,7 +73,8 @@ class OGScrapperUtilsTest {
                         new Meta("og:description", "Déplacement des serveurs de l’infrastructure " +
                                 "i-Run depuis Paris jusqu’à Toulouse chez notre hébergeur FullSave. Nouvelles machines, " +
                                 "nouvelle infra pour plus de résilience et une meilleure tenue de la charge sur les " +
-                                "sites publics comme sur le backoffice.")
+                                "sites publics comme sur le backoffice."),
+                        new Meta("test:double:quote", "With ")
                 )),
                 Arguments.of("youtube.html", List.of(
                         new Meta("og:title", "Programming / Coding / Hacking music vol.16 (CONNECTION LOST)"),

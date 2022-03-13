@@ -1,9 +1,9 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
+import fr.ght1pc9kc.scraphead.core.opengraph.OGType;
+import fr.ght1pc9kc.scraphead.core.opengraph.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.opengraph.Tags;
 import fr.ght1pc9kc.scraphead.core.scrap.model.Meta;
-import fr.ght1pc9kc.scraphead.core.model.OGType;
-import fr.ght1pc9kc.scraphead.core.model.OpenGraph;
-import fr.ght1pc9kc.scraphead.core.model.Tags;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.MalformedURLException;
@@ -40,7 +40,7 @@ public final class OpenGraphMetaReader {
                 case Tags.OG_TYPE:
                     try {
                         builder.type(OGType.from(m.content()));
-                    } catch (Throwable e) {
+                    } catch (Exception e) {
                         log.warn("{}: {}", e.getClass(), e.getLocalizedMessage());
                     }
                     break;

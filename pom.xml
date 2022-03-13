@@ -42,6 +42,8 @@
         <jetbrains.version>20.1.0</jetbrains.version>
         <slf4j.version>1.7.30</slf4j.version>
         <reactor.version>3.4.15</reactor.version>
+        <jsoup.version>1.14.3</jsoup.version>
+
         <mock-server-netty.version>5.12.0</mock-server-netty.version>
         <netty.version>1.0.16</netty.version>
         <junit.version>5.8.2</junit.version>
@@ -103,6 +105,11 @@
                 <groupId>io.projectreactor.netty</groupId>
                 <artifactId>reactor-netty</artifactId>
                 <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
             </dependency>
 
             <!-- TEST-->
