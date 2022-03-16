@@ -7,13 +7,12 @@ import fr.ght1pc9kc.scraphead.core.model.twitter.TwitterCard;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-public final class OpenGraphMetaReader {
+public final class DocumentMetaReader {
     private static final Metas EMPTY = Metas.builder().build();
     private final List<MetaDataCollector> collectors;
 
@@ -22,22 +21,14 @@ public final class OpenGraphMetaReader {
             return EMPTY;
         }
 
-        for (Element element : headDoc.getAllElements()) {
-            collectors.forEach(c -> c.inspect(element));
-        }
-
-        return collect();
-    }
-
-    private Metas collect() {
         Metas.MetasBuilder mBuilder = Metas.builder();
-
-        for (MetaDataCollector c : collectors) {
-            switch (c.type()) {
-                case OPENGRAPH -> mBuilder.og(c.collect(OpenGraph.class));
-                case TWITTER_CARD -> mBuilder.twitter(c.collect(TwitterCard.class));
-                case LINK -> mBuilder.links(c.collect(Links.class));
-                default -> log.debug("Meta type {} unknown !", c.type());
+        for (MetaDataCollector collector : collectors) {
+            Object meta = headDoc.getAllElements().stream().collect(collector.collector());
+            switch (collector.type()) {
+                case OPENGRAPH -> mBuilder.og((OpenGraph) meta);
+                case TWITTER_CARD -> mBuilder.twitter((TwitterCard) meta);
+                case LINK -> mBuilder.links((Links) meta);
+                default -> log.debug("Meta type {} unknown !", collector.type());
             }
         }
 

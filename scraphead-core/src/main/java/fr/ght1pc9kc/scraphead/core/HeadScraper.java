@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
-public interface HeadScrapper {
+public interface HeadScraper {
     Mono<Metas> scrap(URI location);
 
     Mono<OpenGraph> scrapOpenGraph(URI location);

@@ -1,6 +1,6 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
-import fr.ght1pc9kc.scraphead.core.HeadScrapper;
+import fr.ght1pc9kc.scraphead.core.HeadScraper;
 import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.http.WebRequest;
@@ -36,13 +36,13 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @RequiredArgsConstructor
-public final class HeadScrapperImpl implements HeadScrapper {
+public final class HeadScraperImpl implements HeadScraper {
     private static final String HEAD_END_TAG = "</head>";
     private static final Pattern CHARSET_EXTRACT = Pattern.compile("<meta.*?charset=[\"']?([^\"']+)");
 
     private final WebClient http;
 
-    private final OpenGraphMetaReader ogReader;
+    private final DocumentMetaReader ogReader;
 
     private final List<ScraperPlugin> scrapperPlugins;
 

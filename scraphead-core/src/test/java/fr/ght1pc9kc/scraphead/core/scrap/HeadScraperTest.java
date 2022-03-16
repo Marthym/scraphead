@@ -6,6 +6,7 @@ import fr.ght1pc9kc.scraphead.core.http.WebRequest;
 import fr.ght1pc9kc.scraphead.core.http.WebResponse;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.OpenGraphCollector;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,9 +35,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class OpenGraphScrapperTest {
-    private final OpenGraphMetaReader ogReader = spy(new OpenGraphMetaReader());
-    private HeadScrapperImpl tested;
+class HeadScraperTest {
+    private final DocumentMetaReader ogReader = spy(new DocumentMetaReader(List.of(new OpenGraphCollector())));
+    private HeadScraperImpl tested;
 
     private final WebClient webClient = mock(WebClient.class);
 
@@ -57,7 +58,7 @@ class OpenGraphScrapperTest {
             }
 
             ByteBuffer byteBuffer;
-            try (InputStream is = OpenGraphScrapperTest.class.getResourceAsStream(request.location().getPath().replaceAll("^/", ""))) {
+            try (InputStream is = HeadScraperTest.class.getResourceAsStream(request.location().getPath().replaceAll("^/", ""))) {
                 if (is == null) {
                     return Mono.just(new WebResponse(404, null, Flux.empty()));
                 }
@@ -68,7 +69,7 @@ class OpenGraphScrapperTest {
                     HttpHeaders.of(Map.of("content-type", List.of("text/html")), (l, r) -> true), Flux.just(byteBuffer)));
         });
         reset(ogReader);
-        tested = new HeadScrapperImpl(webClient, ogReader, List.of());
+        tested = new HeadScraperImpl(webClient, ogReader, List.of());
     }
 
     @Test
@@ -96,6 +97,7 @@ class OpenGraphScrapperTest {
                 .title("Les Critères de recherche avec Juery")
                 .type(OGType.ARTICLE)
                 .url(new URL("https://blog.ght1pc9kc.fr/2021/les-crit%C3%A8res-de-recherche-avec-juery.html"))
+                        .description("")
                 .build());
     }
 
@@ -137,7 +139,9 @@ class OpenGraphScrapperTest {
     })
     void should_parse_no_encoding_file(String url) {
         URI page = URI.create(url);
-        StepVerifier.create(tested.scrapOpenGraph(page)).verifyComplete();
+        StepVerifier.create(tested.scrapOpenGraph(page))
+                .expectNextMatches(OpenGraph::isEmpty)
+                .verifyComplete();
     }
 
     @Test
@@ -159,7 +163,7 @@ class OpenGraphScrapperTest {
         when(plugin.isApplicable(any())).thenReturn(true);
         when(plugin.postTreatment(any())).thenReturn(Mono.just(og));
 
-        HeadScrapperImpl pluginTested = new HeadScrapperImpl(webClient, ogReader, List.of(plugin));
+        HeadScraperImpl pluginTested = new HeadScraperImpl(webClient, ogReader, List.of(plugin));
         StepVerifier.create(pluginTested.scrapOpenGraph(page)).expectNext(og).verifyComplete();
 
         verify(plugin).additionalCookies();
