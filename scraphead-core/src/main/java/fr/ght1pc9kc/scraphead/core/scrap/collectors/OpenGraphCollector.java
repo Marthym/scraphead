@@ -21,7 +21,7 @@ import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_NAME;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_PROPERTY;
 
 @Slf4j
-public class OpenGraphCollector implements MetaDataCollector, Collector<Element, OpenGraph.OpenGraphBuilder, OpenGraph> {
+public final class OpenGraphCollector implements MetaDataCollector, Collector<Element, OpenGraph.OpenGraphBuilder, OpenGraph> {
     private static final String OG_NAMESPACE = "og:";
     private static final String OG_TITLE = OG_NAMESPACE + "title";
     private static final String OG_TYPE = OG_NAMESPACE + "type";

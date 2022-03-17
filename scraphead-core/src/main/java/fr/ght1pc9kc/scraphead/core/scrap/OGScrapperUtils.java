@@ -16,6 +16,8 @@ public class OGScrapperUtils {
     public static final String META_PROPERTY = "property";
     public static final String META_NAME = "name";
     public static final String META_CONTENT = "content";
+    public static final String META_REL = "rel";
+    public static final String META_HREF = "href";
 
     public static String removeQueryString(String uri) {
         int idx = uri.indexOf('?');

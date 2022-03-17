@@ -1,9 +1,10 @@
 package fr.ght1pc9kc.scraphead.core;
 
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
+import fr.ght1pc9kc.scraphead.core.scrap.DocumentMetaReader;
 import fr.ght1pc9kc.scraphead.core.scrap.HeadScraperImpl;
 import fr.ght1pc9kc.scraphead.core.scrap.MetaDataCollector;
-import fr.ght1pc9kc.scraphead.core.scrap.DocumentMetaReader;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.LinksCollector;
 import fr.ght1pc9kc.scraphead.core.scrap.collectors.OpenGraphCollector;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
@@ -38,7 +39,8 @@ public class HeadScrapers {
 
         public HeadScraper build() {
             List<MetaDataCollector> metaDataCollectors = List.of(
-                    new OpenGraphCollector()
+                    new OpenGraphCollector(),
+                    new LinksCollector()
             );
             return new HeadScraperImpl(webClient, new DocumentMetaReader(metaDataCollectors), scrapperPlugins);
         }
