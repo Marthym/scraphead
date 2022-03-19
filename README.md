@@ -17,7 +17,7 @@ the web client.
 
 * non blocking
 * download only the `<head/>`, not the entire HTML file
-* Multiple web client implementation possible
+* Multiple web client implementation available
 * Detect file encoding
 * Read [OpenGraph](https://ogp.me/)
   and [Twitter Card](https://developer.twitter.com/en/docs/twitter-for-websites/cards/guides/getting-started), and more
