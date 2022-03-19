@@ -4,7 +4,7 @@
     <parent>
         <artifactId>scraphead</artifactId>
         <groupId>fr.ght1pc9kc</groupId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>scraphead-netty</artifactId>
