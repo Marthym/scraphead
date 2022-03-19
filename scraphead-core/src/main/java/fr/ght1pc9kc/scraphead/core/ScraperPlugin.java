@@ -1,6 +1,6 @@
 package fr.ght1pc9kc.scraphead.core;
 
-import fr.ght1pc9kc.scraphead.core.model.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
 import reactor.core.publisher.Mono;
 
 import java.net.HttpCookie;

@@ -1,6 +1,7 @@
-package fr.ght1pc9kc.scraphead.core.model;
+package fr.ght1pc9kc.scraphead.core.model.opengraph;
 
 import lombok.Builder;
+import lombok.Generated;
 import lombok.Value;
 import lombok.With;
 
@@ -26,5 +27,10 @@ public class OpenGraph {
                 && image == null
                 && description == null
                 && locale == null;
+    }
+
+    @Generated
+    public static class OpenGraphBuilder {
+        // Only to allow javadoc with lombok
     }
 }

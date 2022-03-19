@@ -1,22 +1,23 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
-import fr.ght1pc9kc.scraphead.core.scrap.model.Meta;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpHeaders;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @UtilityClass
 public class OGScrapperUtils {
-    private static final String META_PROPERTY = "property";
-    private static final String META_NAME = "name";
-    private static final String META_CONTENT = "content";
+    public static final String META_PROPERTY = "property";
+    public static final String META_NAME = "name";
+    public static final String META_CONTENT = "content";
+    public static final String META_REL = "rel";
+    public static final String META_HREF = "href";
 
     public static String removeQueryString(String uri) {
         int idx = uri.indexOf('?');
@@ -28,6 +29,27 @@ public class OGScrapperUtils {
             return uri;
         } else {
             return URI.create(removeQueryString(uri.toString()));
+        }
+    }
+
+    public static Optional<URL> toUrl(String link) {
+        return toUri(link).flatMap(u -> {
+            try {
+                return Optional.of(u.toURL());
+            } catch (Exception e) {
+                return Optional.empty();
+            }
+        });
+    }
+
+    public static Optional<URI> toUri(String link) {
+        if (link == null || link.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(URI.create(link));
+        } catch (Exception e) {
+            return Optional.empty();
         }
     }
 
@@ -50,62 +72,4 @@ public class OGScrapperUtils {
         }
     }
 
-    public static List<Meta> extractMetaHeaders(String html) {
-        List<Meta> metas = new ArrayList<>();
-        for (String head : html.split("(<meta )")) {
-            try {
-                char[] chars = head.toCharArray();
-                int nextIdx = 0;
-                String metaProperty = null;
-                String metaValue = null;
-
-                while ((metaValue == null || metaProperty == null) || nextIdx < head.length()) {
-                    int eqIdx = head.indexOf('=', nextIdx);
-                    if (eqIdx < 0) {
-                        break;
-                    }
-                    String prop = head.substring(nextIdx, eqIdx).trim();
-                    StringBuilder valueBld = new StringBuilder(head.length() - eqIdx);
-                    char q = 0;
-                    nextIdx = eqIdx + 1;
-                    for (int i = nextIdx; i < chars.length; i++) {
-                        if ((q != '\'' && q != '"') && (chars[i] == '\'' || chars[i] == '"')) {
-                            q = chars[i];
-                            continue;
-                        } else if ((q == '\'' || q == '"') && (chars[i] == q)) {
-                            nextIdx = i + 1;
-                            break;
-                        }
-                        valueBld.append(chars[i]);
-                    }
-                    String value = valueBld.toString();
-
-                    switch (prop) {
-                        case META_NAME:
-                            if (metaProperty == null) {
-                                metaProperty = value;
-                            }
-                            break;
-                        case META_PROPERTY:
-                            metaProperty = value;
-                            break;
-                        case META_CONTENT:
-                            metaValue = value;
-                            break;
-                        default:
-                            log.debug("prop value ({}) not in " + META_NAME + ", " + META_PROPERTY + ", " + META_CONTENT, prop);
-                    }
-                }
-
-                if (metaProperty == null || metaValue == null) {
-                    continue;
-                }
-                metas.add(new Meta(metaProperty, metaValue));
-            } catch (Exception e) {
-                log.debug("Fail to parse meta {}", head);
-                log.debug("STACKTRACE", e);
-            }
-        }
-        return List.copyOf(metas);
-    }
 }

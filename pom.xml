@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.ght1pc9kc</groupId>
     <artifactId>scraphead</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <name>Scraphead</name>
@@ -25,8 +23,16 @@
         <connection>scm:git:git@github.com:Marthym/scraphead.git</connection>
         <developerConnection>scm:git:git@github.com:Marthym/scraphead.git</developerConnection>
         <url>https://github.com/Marthym/scraphead</url>
-        <tag>HEAD</tag>
+        <tag>1.0.0</tag>
     </scm>
+    <developers>
+        <developer>
+            <id>marthym</id>
+            <name>Frédéric Combes</name>
+            <organization>ght1pc9kc.fr</organization>
+            <organizationUrl>https://blog.ght1pc9kc.fr/</organizationUrl>
+        </developer>
+    </developers>
 
     <modules>
         <module>scraphead-core</module>
@@ -35,24 +41,27 @@
 
     <properties>
         <encoding>UTF-8</encoding>
+        <maven.compiler.release>17</maven.compiler.release>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
         <lombok.version>1.18.22</lombok.version>
-        <jetbrains.version>20.1.0</jetbrains.version>
-        <slf4j.version>1.7.30</slf4j.version>
-        <reactor.version>3.4.15</reactor.version>
-        <mock-server-netty.version>5.12.0</mock-server-netty.version>
-        <netty.version>1.0.16</netty.version>
+        <jetbrains.version>23.0.0</jetbrains.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <reactor.version>3.4.16</reactor.version>
+        <jsoup.version>1.14.3</jsoup.version>
+
+        <mockserver-netty.version>5.13.0</mockserver-netty.version>
+        <netty.version>1.0.17</netty.version>
         <junit.version>5.8.2</junit.version>
         <assertj.version>3.22.0</assertj.version>
-        <mockito.version>4.3.1</mockito.version>
+        <mockito.version>4.4.0</mockito.version>
 
 
-        <maven-compiler-plugin.version>3.10.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
-        <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
+        <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
         <maven-release-plugin.version>3.0.0-M5</maven-release-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.12</nexus-staging-maven-plugin.version>
         <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
@@ -63,17 +72,8 @@
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.3.2</maven-javadoc-plugin.version>
 
-        <surefire.argline.opens/>
+        <surefire.argline.opens />
     </properties>
-
-    <developers>
-        <developer>
-            <id>marthym</id>
-            <name>Frédéric Combes</name>
-            <organization>ght1pc9kc.fr</organization>
-            <organizationUrl>https://blog.ght1pc9kc.fr/</organizationUrl>
-        </developer>
-    </developers>
 
     <dependencyManagement>
         <dependencies>
@@ -103,6 +103,11 @@
                 <groupId>io.projectreactor.netty</groupId>
                 <artifactId>reactor-netty</artifactId>
                 <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
             </dependency>
 
             <!-- TEST-->
@@ -145,7 +150,7 @@
             <dependency>
                 <groupId>org.mock-server</groupId>
                 <artifactId>mockserver-netty</artifactId>
-                <version>${mock-server-netty.version}</version>
+                <version>${mockserver-netty.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -165,7 +170,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <release>${maven.compiler.source}</release>
+                        <release>${maven.compiler.release}</release>
                         <parameters>true</parameters>
                         <generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>
                         <annotationProcessorPaths>
@@ -274,5 +279,132 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>releases</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${maven-source-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <configuration>
+                            <sourcepath>${delombok.output}</sourcepath>
+                            <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+                            <doclint>all,-missing</doclint>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>javadoc-generate</id>
+                                <goals>
+                                    <goal>resource-bundle</goal>
+                                </goals>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <version>${maven-release-plugin.version}</version>
+                        <configuration>
+                            <localCheckout>true</localCheckout>
+                            <pushChanges>false</pushChanges>
+                            <mavenExecutorId>forked-path</mavenExecutorId>
+                            <releaseProfiles>releases</releaseProfiles>
+                            <updateDependencies>false</updateDependencies>
+                            <tagNameFormat>@{version}</tagNameFormat>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.apache.maven.scm</groupId>
+                                <artifactId>maven-scm-provider-gitexe</artifactId>
+                                <version>${maven-scm-provider-gitexe.version}</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.apache.maven.scm</groupId>
+                                <artifactId>maven-scm-api</artifactId>
+                                <version>${maven-scm-api.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <useAgent>true</useAgent>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>${maven-deploy-plugin.version}</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>${nexus-staging-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>default-deploy</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>deploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
+
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 </project>
