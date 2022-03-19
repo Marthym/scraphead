@@ -15,6 +15,7 @@
         <surefire.argline.opens>
             --add-opens scraphead.core/fr.ght1pc9kc.scraphead.core=ALL-UNNAMED
             --add-opens scraphead.core/fr.ght1pc9kc.scraphead.core.scrap=ALL-UNNAMED
+            --add-opens scraphead.core/fr.ght1pc9kc.scraphead.core.scrap.collectors=ALL-UNNAMED
         </surefire.argline.opens>
     </properties>
 
@@ -38,16 +39,6 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-core</artifactId>
-            <version>1.34</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-generator-annprocess</artifactId>
-            <version>1.34</version>
         </dependency>
 
         <dependency>
