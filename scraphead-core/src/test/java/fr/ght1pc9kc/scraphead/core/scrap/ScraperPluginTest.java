@@ -3,6 +3,7 @@ package fr.ght1pc9kc.scraphead.core.scrap;
 import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.http.WebResponse;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.OpenGraphCollector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
@@ -24,7 +25,7 @@ class ScraperPluginTest {
 
     private final ScraperPlugin plugin = mock(ScraperPlugin.class);
 
-    private OpenGraphScrapper tested;
+    private HeadScraperImpl tested;
 
     @BeforeEach
     void setUp() {
@@ -35,13 +36,13 @@ class ScraperPluginTest {
                         HttpHeaders.of(Map.of("content-type", List.of("application/json")), (l, r) -> true),
                         Flux.empty()))
         );
-        this.tested = new OpenGraphScrapper(webClient, new OpenGraphMetaReader(), List.of(plugin));
+        this.tested = new HeadScraperImpl(webClient, new DocumentMetaReader(List.of(new OpenGraphCollector())), List.of(plugin));
     }
 
     @Test
     void should_use_plugin_for_scrapper() {
         StepVerifier.create(
-                tested.scrap(URI.create("https://www.youtube.com/watch?v=l9nh1l8ZIJQ"))
+                tested.scrapOpenGraph(URI.create("https://www.youtube.com/watch?v=l9nh1l8ZIJQ"))
         ).verifyComplete();
 
         verify(plugin, times(1)).additionalHeaders();

@@ -11,7 +11,7 @@ class HeadScrapersTest {
     void should_build_head_scraper() {
         WebClient webClient = mock(WebClient.class);
         ScraperPlugin scraperPlugin = mock(ScraperPlugin.class);
-        HeadScrapper actual = HeadScrapers.builder(webClient)
+        HeadScraper actual = HeadScrapers.builder(webClient)
                 .registerPlugin(scraperPlugin)
                 .build();
 

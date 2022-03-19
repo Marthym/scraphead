@@ -4,8 +4,9 @@ import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.http.WebRequest;
 import fr.ght1pc9kc.scraphead.core.http.WebResponse;
-import fr.ght1pc9kc.scraphead.core.model.OGType;
-import fr.ght1pc9kc.scraphead.core.model.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
+import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.OpenGraphCollector;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,9 +35,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class OpenGraphScrapperTest {
-    private final OpenGraphMetaReader ogReader = spy(new OpenGraphMetaReader());
-    private OpenGraphScrapper tested;
+class HeadScraperTest {
+    private final DocumentMetaReader ogReader = spy(new DocumentMetaReader(List.of(new OpenGraphCollector())));
+    private HeadScraperImpl tested;
 
     private final WebClient webClient = mock(WebClient.class);
 
@@ -57,7 +58,7 @@ class OpenGraphScrapperTest {
             }
 
             ByteBuffer byteBuffer;
-            try (InputStream is = OpenGraphScrapperTest.class.getResourceAsStream(request.location().getPath().replaceAll("^/", ""))) {
+            try (InputStream is = HeadScraperTest.class.getResourceAsStream(request.location().getPath().replaceAll("^/", ""))) {
                 if (is == null) {
                     return Mono.just(new WebResponse(404, null, Flux.empty()));
                 }
@@ -68,13 +69,13 @@ class OpenGraphScrapperTest {
                     HttpHeaders.of(Map.of("content-type", List.of("text/html")), (l, r) -> true), Flux.just(byteBuffer)));
         });
         reset(ogReader);
-        tested = new OpenGraphScrapper(webClient, ogReader, List.of());
+        tested = new HeadScraperImpl(webClient, ogReader, List.of());
     }
 
     @Test
     void should_parse_opengraph() throws MalformedURLException {
         URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
-        OpenGraph actual = tested.scrap(page).block();
+        OpenGraph actual = tested.scrapOpenGraph(page).block();
 
         Assertions.assertThat(actual).isEqualTo(OpenGraph.builder()
                 .title("De Paris à Toulouse")
@@ -90,19 +91,20 @@ class OpenGraphScrapperTest {
     @Test
     void should_parse_opengraph_with_empty_fields() throws MalformedURLException {
         URI page = URI.create("https://blog.ght1pc9kc.fr/ght-bad-parsing.html");
-        OpenGraph actual = tested.scrap(page).block();
+        OpenGraph actual = tested.scrapOpenGraph(page).block();
 
         Assertions.assertThat(actual).isEqualTo(OpenGraph.builder()
                 .title("Les Critères de recherche avec Juery")
                 .type(OGType.ARTICLE)
                 .url(new URL("https://blog.ght1pc9kc.fr/2021/les-crit%C3%A8res-de-recherche-avec-juery.html"))
+                        .description("")
                 .build());
     }
 
     @Test
     void should_parse_opengraph_with_apostrophe() {
         URI page = URI.create("https://blog.ght1pc9kc.fr/apostrophe.html");
-        OpenGraph actual = tested.scrap(page).block();
+        OpenGraph actual = tested.scrapOpenGraph(page).block();
 
         Assertions.assertThat(actual).isNotNull();
         assertAll(
@@ -116,7 +118,7 @@ class OpenGraphScrapperTest {
     @Test
     void should_parse_non_utf8_file() {
         URI page = URI.create("https://blog.ght1pc9kc.fr/dev-empty-metas-error.html");
-        OpenGraph actual = tested.scrap(page).block();
+        OpenGraph actual = tested.scrapOpenGraph(page).block();
 
         Assertions.assertThat(actual).isNotNull();
         assertAll(
@@ -137,7 +139,9 @@ class OpenGraphScrapperTest {
     })
     void should_parse_no_encoding_file(String url) {
         URI page = URI.create(url);
-        StepVerifier.create(tested.scrap(page)).verifyComplete();
+        StepVerifier.create(tested.scrapOpenGraph(page))
+                .expectNextMatches(OpenGraph::isEmpty)
+                .verifyComplete();
     }
 
     @Test
@@ -159,8 +163,8 @@ class OpenGraphScrapperTest {
         when(plugin.isApplicable(any())).thenReturn(true);
         when(plugin.postTreatment(any())).thenReturn(Mono.just(og));
 
-        OpenGraphScrapper pluginTested = new OpenGraphScrapper(webClient, ogReader, List.of(plugin));
-        StepVerifier.create(pluginTested.scrap(page)).expectNext(og).verifyComplete();
+        HeadScraperImpl pluginTested = new HeadScraperImpl(webClient, ogReader, List.of(plugin));
+        StepVerifier.create(pluginTested.scrapOpenGraph(page)).expectNext(og).verifyComplete();
 
         verify(plugin).additionalCookies();
         verify(plugin).additionalHeaders();
