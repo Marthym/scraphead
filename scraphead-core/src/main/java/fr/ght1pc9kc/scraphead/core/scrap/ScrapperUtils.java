@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Slf4j
 @UtilityClass
-public class OGScrapperUtils {
+public class ScrapperUtils {
     public static final String META_PROPERTY = "property";
     public static final String META_NAME = "name";
     public static final String META_CONTENT = "content";

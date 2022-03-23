@@ -11,10 +11,10 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_CONTENT;
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_HREF;
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_NAME;
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_REL;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_CONTENT;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_HREF;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_NAME;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_REL;
 
 class LinksCollectorTest {
 

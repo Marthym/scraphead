@@ -18,9 +18,9 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_CONTENT;
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_NAME;
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_PROPERTY;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_CONTENT;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_NAME;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_PROPERTY;
 
 class DocumentMetaReaderTest {
     private final DocumentMetaReader tested = new DocumentMetaReader(List.of(new OpenGraphCollector()));

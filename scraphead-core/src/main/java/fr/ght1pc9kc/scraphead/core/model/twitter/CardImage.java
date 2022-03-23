@@ -15,4 +15,12 @@ public record CardImage(
     public static CardImage of(URL url, String alt) {
         return new CardImage(url, alt);
     }
+
+    public CardImage withAlt(String alt) {
+        return CardImage.of(this.url, alt);
+    }
+
+    public CardImage withUrl(URL url) {
+        return CardImage.of(url, this.alt);
+    }
 }

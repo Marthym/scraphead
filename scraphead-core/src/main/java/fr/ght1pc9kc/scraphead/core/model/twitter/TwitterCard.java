@@ -11,7 +11,8 @@ public record TwitterCard(
         @Nullable CardCreator creator,
         @Nullable String description,
         @Nullable String title,
-        List<CardImage> images,
+        @Nullable CardImage image,
+        @Nullable CardPlayer player,
         List<CardApp> apps
 ) {
     @Builder

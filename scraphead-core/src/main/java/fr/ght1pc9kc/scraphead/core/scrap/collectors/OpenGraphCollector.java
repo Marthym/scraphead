@@ -4,7 +4,7 @@ import fr.ght1pc9kc.scraphead.core.model.MetaType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
 import fr.ght1pc9kc.scraphead.core.scrap.MetaDataCollector;
-import fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils;
+import fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Element;
 
@@ -16,9 +16,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_CONTENT;
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_NAME;
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_PROPERTY;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_CONTENT;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_NAME;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_PROPERTY;
 
 @Slf4j
 public final class OpenGraphCollector implements MetaDataCollector, Collector<Element, OpenGraph.OpenGraphBuilder, OpenGraph> {
@@ -67,11 +67,11 @@ public final class OpenGraphCollector implements MetaDataCollector, Collector<El
                     }
                     break;
                 case OG_URL:
-                    OGScrapperUtils.toUrl(element.attr("abs:" + META_CONTENT))
+                    ScrapperUtils.toUrl(element.attr("abs:" + META_CONTENT))
                             .ifPresent(builder::url);
                     break;
                 case OG_IMAGE:
-                    OGScrapperUtils.toUri(element.attr("abs:" + META_CONTENT))
+                    ScrapperUtils.toUri(element.attr("abs:" + META_CONTENT))
                             .ifPresent(builder::image);
                     break;
                 case OG_DESCRIPTION:

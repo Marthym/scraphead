@@ -1,16 +1,20 @@
 package fr.ght1pc9kc.scraphead.core.scrap.collectors;
 
 import fr.ght1pc9kc.scraphead.core.model.MetaType;
+import fr.ght1pc9kc.scraphead.core.model.twitter.CardApp;
 import fr.ght1pc9kc.scraphead.core.model.twitter.CardCreator;
+import fr.ght1pc9kc.scraphead.core.model.twitter.CardImage;
+import fr.ght1pc9kc.scraphead.core.model.twitter.CardPlayer;
 import fr.ght1pc9kc.scraphead.core.model.twitter.CardSite;
 import fr.ght1pc9kc.scraphead.core.model.twitter.CardType;
 import fr.ght1pc9kc.scraphead.core.model.twitter.TwitterCard;
 import fr.ght1pc9kc.scraphead.core.scrap.MetaDataCollector;
-import fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils;
+import fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Element;
 
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -18,8 +22,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_CONTENT;
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_NAME;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_CONTENT;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_NAME;
 
 @Slf4j
 public class TwitterCardCollector implements MetaDataCollector, Collector<Element, TwitterCard.TwitterCardBuilder, TwitterCard> {
@@ -30,8 +34,14 @@ public class TwitterCardCollector implements MetaDataCollector, Collector<Elemen
     private static final String TWITTER_CREATOR = TWITTER_NAMESPACE + "creator";
     private static final String TWITTER_CREATOR_ID = TWITTER_CREATOR + ":id";
     private static final String TWITTER_TITLE = TWITTER_NAMESPACE + "title";
-    private static final String TWITTER_URL = TWITTER_NAMESPACE + "url";
     private static final String TWITTER_IMAGE = TWITTER_NAMESPACE + "image";
+    private static final String TWITTER_IMAGE_ALT = TWITTER_IMAGE + ":alt";
+    private static final String TWITTER_PLAYER = TWITTER_NAMESPACE + "player";
+    private static final String TWITTER_PLAYER_WIDTH = TWITTER_PLAYER + ":width";
+    private static final String TWITTER_PLAYER_HEIGHT = TWITTER_PLAYER + ":height";
+    private static final String TWITTER_PLAYER_STREAM = TWITTER_PLAYER + ":stream";
+
+    private static final String TWITTER_URL = TWITTER_NAMESPACE + "url";
     private static final String TWITTER_DESCRIPTION = TWITTER_NAMESPACE + "description";
     private static final String TWITTER_LOCALE = TWITTER_NAMESPACE + "locale";
     public static final String EXCEPTION_BASE_MESSAGE = "{}: {}";
@@ -63,6 +73,7 @@ public class TwitterCardCollector implements MetaDataCollector, Collector<Elemen
                 return;
             }
 
+            List<CardApp> apps = new ArrayList<>();
             switch (property) {
                 case TWITTER_CARD:
                     try {
@@ -97,27 +108,78 @@ public class TwitterCardCollector implements MetaDataCollector, Collector<Elemen
                 case TWITTER_TITLE:
                     builder.title(element.attr(META_CONTENT));
                     break;
-                case TWITTER_URL:
-                    OGScrapperUtils.toUrl(element.attr("abs:" + META_CONTENT))
-                            .ifPresent(builder::url);
-                    break;
                 case TWITTER_IMAGE:
-                    OGScrapperUtils.toUri(element.attr("abs:" + META_CONTENT))
+                    ScrapperUtils.toUrl(element.attr("abs:" + META_CONTENT))
+                            .map(u -> {
+                                CardImage img = builder.build().image();
+                                if (img == null) {
+                                    return CardImage.of(u);
+                                } else {
+                                    return img.withUrl(u);
+                                }
+                            })
                             .ifPresent(builder::image);
                     break;
-                case TWITTER_DESCRIPTION:
-                    if (element.hasAttr(META_CONTENT)) {
-                        builder.description(element.attr(META_CONTENT));
+                case TWITTER_IMAGE_ALT:
+                    String alt = element.attr(META_CONTENT);
+                    if (!alt.isBlank()) {
+                        CardImage img = builder.build().image();
+                        if (img == null) {
+                            builder.image(new CardImage(null, alt));
+                        } else {
+                            builder.image(img.withAlt(alt));
+                        }
                     }
                     break;
-                case TWITTER_LOCALE:
-                    if (element.hasAttr(META_CONTENT)) {
-                        builder.locale(Locale.forLanguageTag(
-                                element.attr(META_CONTENT).replace('_', '-')));
+                case TWITTER_PLAYER:
+                    ScrapperUtils.toUrl(element.attr("abs:" + META_CONTENT))
+                            .map(u -> {
+                                CardPlayer player = builder.build().player();
+                                if (player == null) {
+                                    return CardPlayer.of(u);
+                                } else {
+                                    return player.withUrl(u);
+                                }
+                            })
+                            .ifPresent(builder::player);
+                    break;
+                case TWITTER_PLAYER_WIDTH:
+                    String width = element.attr(META_CONTENT);
+                    if (!width.isBlank()) {
+                        CardPlayer player = builder.build().player();
+                        if (player == null) {
+                            builder.player(new CardPlayer(null, Integer.parseInt(width), -1, null));
+                        } else {
+                            builder.player(player.withWidth(Integer.parseInt(width)));
+                        }
                     }
+                    break;
+                case TWITTER_PLAYER_HEIGHT:
+                    String height = element.attr(META_CONTENT);
+                    if (!height.isBlank()) {
+                        CardPlayer player = builder.build().player();
+                        if (player == null) {
+                            builder.player(new CardPlayer(null, -1, Integer.parseInt(height), null));
+                        } else {
+                            builder.player(player.withWidth(Integer.parseInt(height)));
+                        }
+                    }
+                    break;
+                case TWITTER_PLAYER_STREAM:
+                    ScrapperUtils.toUrl(element.attr("abs:" + META_CONTENT))
+                            .map(u -> {
+                                CardPlayer player = builder.build().player();
+                                if (player == null) {
+                                    return new CardPlayer(null, -1, -1, u);
+                                } else {
+                                    return player.withUrl(u);
+                                }
+                            })
+                            .ifPresent(builder::player);
                     break;
                 default:
             }
+            builder.apps(List.copyOf(apps));
         };
     }
 

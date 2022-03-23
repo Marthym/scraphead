@@ -83,7 +83,7 @@ public final class HeadScraperImpl implements HeadScraper {
         WebRequest request = new WebRequest(location, HttpHeaders.of(headers, (n, v) -> true), cookies);
         return http.send(request)
                 .flatMap(response -> {
-                    AtomicReference<Charset> responseCharset = new AtomicReference<>(OGScrapperUtils.charsetFrom(response.headers()));
+                    AtomicReference<Charset> responseCharset = new AtomicReference<>(ScrapperUtils.charsetFrom(response.headers()));
 
                     return response.body()
 

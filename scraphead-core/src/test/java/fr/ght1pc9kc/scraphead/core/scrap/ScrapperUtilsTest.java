@@ -6,7 +6,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.net.URI;
 
-class OGScrapperUtilsTest {
+class ScrapperUtilsTest {
     @ParameterizedTest
     @CsvSource({
             "https://www.jedi.com/obiwan/?q=jedi, https://www.jedi.com/obiwan/",
@@ -14,7 +14,7 @@ class OGScrapperUtilsTest {
             "https://www.jedi.com/?obiwan/?q=jedi, https://www.jedi.com/",
     })
     void should_remove_querystring_from_uri(String uri, String expected) {
-        URI actual = OGScrapperUtils.removeQueryString(URI.create(uri));
+        URI actual = ScrapperUtils.removeQueryString(URI.create(uri));
         Assertions.assertThat(actual).hasToString(expected);
     }
 
@@ -26,7 +26,7 @@ class OGScrapperUtilsTest {
             "www.jedi.com/?obiwan/?q=jedi, www.jedi.com/",
     })
     void should_remove_querystring_from_string(String uri, String expected) {
-        String actual = OGScrapperUtils.removeQueryString(uri);
+        String actual = ScrapperUtils.removeQueryString(uri);
         Assertions.assertThat(actual).isEqualTo(expected);
     }
 

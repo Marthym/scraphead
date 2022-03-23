@@ -3,7 +3,7 @@ package fr.ght1pc9kc.scraphead.core.scrap.collectors;
 import fr.ght1pc9kc.scraphead.core.model.MetaType;
 import fr.ght1pc9kc.scraphead.core.model.links.Links;
 import fr.ght1pc9kc.scraphead.core.scrap.MetaDataCollector;
-import fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils;
+import fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Element;
 
@@ -14,8 +14,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_HREF;
-import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_REL;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_HREF;
+import static fr.ght1pc9kc.scraphead.core.scrap.ScrapperUtils.META_REL;
 
 @Slf4j
 public final class LinksCollector implements MetaDataCollector, Collector<Element, Links.LinksBuilder, Links> {
@@ -49,13 +49,13 @@ public final class LinksCollector implements MetaDataCollector, Collector<Elemen
             String relation = element.attr(META_REL);
 
             switch (relation) {
-                case REL_CANONICAL -> OGScrapperUtils.toUri(element.attr("abs:" + META_HREF))
+                case REL_CANONICAL -> ScrapperUtils.toUri(element.attr("abs:" + META_HREF))
                         .ifPresent(builder::canonical);
-                case REL_ICON -> OGScrapperUtils.toUri(element.attr("abs:" + META_HREF))
+                case REL_ICON -> ScrapperUtils.toUri(element.attr("abs:" + META_HREF))
                         .ifPresent(builder::icon);
-                case REL_LICENSE -> OGScrapperUtils.toUri(element.attr("abs:" + META_HREF))
+                case REL_LICENSE -> ScrapperUtils.toUri(element.attr("abs:" + META_HREF))
                         .ifPresent(builder::license);
-                case REL_SHORTLINK -> OGScrapperUtils.toUri(element.attr("abs:" + META_HREF))
+                case REL_SHORTLINK -> ScrapperUtils.toUri(element.attr("abs:" + META_HREF))
                         .ifPresent(builder::shortlink);
                 default -> log.trace("Unmanaged relation for {}", relation);
             }
