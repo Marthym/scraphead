@@ -145,6 +145,15 @@ class HeadScraperTest {
     }
 
     @Test
+    void should_avoid_crash_when_error() {
+        reset(webClient);
+        when(webClient.send(any(WebRequest.class))).thenThrow(new IllegalArgumentException());
+        URI page = URI.create("/relative/path");
+        StepVerifier.create(tested.scrapOpenGraph(page))
+                .verifyComplete();
+    }
+
+    @Test
     void should_use_plugin() throws MalformedURLException {
         URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
         OpenGraph og = OpenGraph.builder()

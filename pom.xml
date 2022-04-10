@@ -4,7 +4,7 @@
 
     <groupId>fr.ght1pc9kc</groupId>
     <artifactId>scraphead</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>pom</packaging>
 
     <name>Scraphead</name>
@@ -23,7 +23,7 @@
         <connection>scm:git:git@github.com:Marthym/scraphead.git</connection>
         <developerConnection>scm:git:git@github.com:Marthym/scraphead.git</developerConnection>
         <url>https://github.com/Marthym/scraphead</url>
-        <tag>1.0.0</tag>
+        <tag>1.0.1</tag>
     </scm>
     <developers>
         <developer>
@@ -49,10 +49,10 @@
         <jetbrains.version>23.0.0</jetbrains.version>
         <slf4j.version>1.7.36</slf4j.version>
         <reactor.version>3.4.16</reactor.version>
+        <netty.version>1.0.17</netty.version>
         <jsoup.version>1.14.3</jsoup.version>
 
         <mockserver-netty.version>5.13.0</mockserver-netty.version>
-        <netty.version>1.0.17</netty.version>
         <junit.version>5.8.2</junit.version>
         <assertj.version>3.22.0</assertj.version>
         <mockito.version>4.4.0</mockito.version>

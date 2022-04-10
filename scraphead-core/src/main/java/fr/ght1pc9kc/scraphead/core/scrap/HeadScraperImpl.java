@@ -37,6 +37,9 @@ import java.util.regex.Pattern;
 @Slf4j
 @RequiredArgsConstructor
 public final class HeadScraperImpl implements HeadScraper {
+    public static final String WARNING_MESSAGE = "{} on {}";
+    public static final String STACKTRACE_DEBUG_MESSAGE = "STACKTRACE";
+
     private static final String HEAD_END_TAG = "</head>";
     private static final Pattern CHARSET_EXTRACT = Pattern.compile("<meta.*?charset=[\"']?([^\"']+)");
 
@@ -67,59 +70,64 @@ public final class HeadScraperImpl implements HeadScraper {
     }
 
     private Mono<Metas> scrapHead(URI location) {
-        Map<String, List<String>> headers = new HashMap<>();
-        List<HttpCookie> cookies = new ArrayList<>();
-        for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
-            if (scrapperPlugin.isApplicable(location)) {
-                scrapperPlugin.additionalHeaders().forEach((k, v) -> {
-                    List<String> values = headers.computeIfAbsent(k, n -> new ArrayList<>());
-                    values.add(v);
-                });
-                cookies.addAll(scrapperPlugin.additionalCookies());
+        try {
+            Map<String, List<String>> headers = new HashMap<>();
+            List<HttpCookie> cookies = new ArrayList<>();
+            for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
+                if (scrapperPlugin.isApplicable(location)) {
+                    scrapperPlugin.additionalHeaders().forEach((k, v) -> {
+                        List<String> values = headers.computeIfAbsent(k, n -> new ArrayList<>());
+                        values.add(v);
+                    });
+                    cookies.addAll(scrapperPlugin.additionalCookies());
+                }
             }
-        }
-        headers.computeIfAbsent("Accept-Charset", k -> new ArrayList<>()).add(StandardCharsets.UTF_8.name());
+            headers.computeIfAbsent("Accept-Charset", k -> new ArrayList<>()).add(StandardCharsets.UTF_8.name());
 
-        WebRequest request = new WebRequest(location, HttpHeaders.of(headers, (n, v) -> true), cookies);
-        return http.send(request)
-                .flatMap(response -> {
-                    AtomicReference<Charset> responseCharset = new AtomicReference<>(OGScrapperUtils.charsetFrom(response.headers()));
+            WebRequest request = new WebRequest(location, HttpHeaders.of(headers, (n, v) -> true), cookies);
+            return http.send(request)
+                    .flatMap(response -> {
+                        AtomicReference<Charset> responseCharset = new AtomicReference<>(OGScrapperUtils.charsetFrom(response.headers()));
 
-                    return response.body()
+                        return response.body()
 
-                            .switchOnFirst(computeCharacterEncoding(location, responseCharset))
+                                .switchOnFirst(computeCharacterEncoding(location, responseCharset))
 
-                            .scan(new StringBuilder(), (sb, buff) -> {
-                                assert buff.hasArray();
-                                String newContent = new String(buff.array(), responseCharset.get());
-                                return sb.append(newContent);
-                            })
-                            .takeUntil(sb -> sb.indexOf(HEAD_END_TAG) >= 0)
-                            .last();
+                                .scan(new StringBuilder(), (sb, buff) -> {
+                                    assert buff.hasArray();
+                                    String newContent = new String(buff.array(), responseCharset.get());
+                                    return sb.append(newContent);
+                                })
+                                .takeUntil(sb -> sb.indexOf(HEAD_END_TAG) >= 0)
+                                .last();
 
-                })
-                .map(StringBuilder::toString)
-                .doFirst(() -> log.trace("Receiving data from {}...", location))
+                    })
+                    .map(StringBuilder::toString)
+                    .doFirst(() -> log.trace("Receiving data from {}...", location))
 
-                .map(html -> Jsoup.parseBodyFragment(html, location.toString()))
-                .map(ogReader::read)
+                    .map(html -> Jsoup.parseBodyFragment(html, location.toString()))
+                    .map(ogReader::read)
 
-                .flatMap(og -> {
-                    Mono<Metas> resultOg = Mono.just(og);
-                    for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
-                        if (scrapperPlugin.isApplicable(location)) {
-                            resultOg = resultOg.flatMap(m -> scrapperPlugin.postTreatment(m.og()).map(m::withOg));
+                    .flatMap(og -> {
+                        Mono<Metas> resultOg = Mono.just(og);
+                        for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
+                            if (scrapperPlugin.isApplicable(location)) {
+                                resultOg = resultOg.flatMap(m -> scrapperPlugin.postTreatment(m.og()).map(m::withOg));
+                            }
                         }
-                    }
-                    return resultOg;
-                })
+                        return resultOg;
+                    })
 
-                .onErrorResume(e -> {
-                    log.warn("{} on {}", e.getLocalizedMessage(), location);
-                    log.debug("STACKTRACE", e);
-                    return Mono.empty();
-                });
-
+                    .onErrorResume(e -> {
+                        log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), location);
+                        log.debug(STACKTRACE_DEBUG_MESSAGE, e);
+                        return Mono.empty();
+                    });
+        } catch (Exception e) {
+            log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), location);
+            log.debug(STACKTRACE_DEBUG_MESSAGE, e);
+            return Mono.empty();
+        }
     }
 
     @NotNull
@@ -141,7 +149,7 @@ public final class HeadScraperImpl implements HeadScraper {
                         }
                     } catch (Exception ex) {
                         log.trace("Unable to parse charset encoding from {}", location);
-                        log.trace("STACKTRACE", e);
+                        log.trace(STACKTRACE_DEBUG_MESSAGE, e);
                     }
                     return Flux.empty();
                 }
