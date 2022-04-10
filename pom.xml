@@ -4,7 +4,7 @@
 
     <groupId>fr.ght1pc9kc</groupId>
     <artifactId>scraphead</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Scraphead</name>
@@ -23,7 +23,7 @@
         <connection>scm:git:git@github.com:Marthym/scraphead.git</connection>
         <developerConnection>scm:git:git@github.com:Marthym/scraphead.git</developerConnection>
         <url>https://github.com/Marthym/scraphead</url>
-        <tag>1.0.1</tag>
+        <tag>HEAD</tag>
     </scm>
     <developers>
         <developer>
