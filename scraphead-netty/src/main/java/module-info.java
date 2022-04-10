@@ -10,6 +10,7 @@ module scraphead.netty {
     requires reactor.netty.core;
     requires java.net.http;
     requires io.netty.buffer;
+    requires io.netty.transport;
     requires io.netty.codec;
     requires io.netty.codec.http;
 }
