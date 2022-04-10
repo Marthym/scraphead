@@ -6,7 +6,6 @@ import fr.ght1pc9kc.scraphead.core.http.WebRequest;
 import fr.ght1pc9kc.scraphead.core.http.WebResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
@@ -47,9 +46,8 @@ public class NettyWebClient implements WebClient {
     private final HttpClient http;
 
     public NettyWebClient() {
-        ChannelHandler handler = new DelimiterBasedFrameDecoder(MAX_FRAME_LENGTH, FRAME_HEAD_DELIMITER, FRAME_BODY_DELIMITER);
         this.http = HttpClient.create()
-                .doOnConnected(c -> c.addHandler(handler)) //FIXME: when reactor-netty {@link HttpOperations} will implement addHandlerLast
+                .doOnConnected(c -> c.addHandler(new DelimiterBasedFrameDecoder(MAX_FRAME_LENGTH, FRAME_HEAD_DELIMITER, FRAME_BODY_DELIMITER))) //FIXME: when reactor-netty {@link HttpOperations} will implement addHandlerLast
                 .secure(spec -> spec.sslContext(Http11SslContextSpec.forClient()))
                 .followRedirect((req, res) -> // 303 was not in the default code
                         Set.of(301, 302, 303, 307, 308).contains(res.status().code()))
