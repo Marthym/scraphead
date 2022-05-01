@@ -1,13 +1,9 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
 import fr.ght1pc9kc.scraphead.core.HeadScraper;
-import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.http.WebRequest;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
-import fr.ght1pc9kc.scraphead.core.model.links.Links;
-import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
-import fr.ght1pc9kc.scraphead.core.model.twitter.TwitterCard;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -47,44 +43,22 @@ public final class HeadScraperImpl implements HeadScraper {
 
     private final DocumentMetaReader ogReader;
 
-    private final List<ScraperPlugin> scrapperPlugins;
-
     @Override
     public Mono<Metas> scrap(URI location) {
-        return scrapHead(location);
+        return scrapHead(location, HttpHeaders.of(Map.of(), (n, v) -> true), List.of());
     }
 
     @Override
-    public Mono<OpenGraph> scrapOpenGraph(URI location) {
-        return scrapHead(location).map(Metas::og);
+    public Mono<Metas> scrap(URI location, HttpHeaders headers, List<HttpCookie> cookies) {
+        return scrapHead(location, headers, cookies);
     }
 
-    @Override
-    public Mono<TwitterCard> scrapTwitterCard(URI location) {
-        return scrapHead(location).map(Metas::twitter);
-    }
-
-    @Override
-    public Mono<Links> scrapLinks(URI location) {
-        return scrapHead(location).map(Metas::links);
-    }
-
-    private Mono<Metas> scrapHead(URI location) {
+    private Mono<Metas> scrapHead(URI location, HttpHeaders headers, List<HttpCookie> cookies) {
         try {
-            Map<String, List<String>> headers = new HashMap<>();
-            List<HttpCookie> cookies = new ArrayList<>();
-            for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
-                if (scrapperPlugin.isApplicable(location)) {
-                    scrapperPlugin.additionalHeaders().forEach((k, v) -> {
-                        List<String> values = headers.computeIfAbsent(k, n -> new ArrayList<>());
-                        values.add(v);
-                    });
-                    cookies.addAll(scrapperPlugin.additionalCookies());
-                }
-            }
-            headers.computeIfAbsent("Accept-Charset", k -> new ArrayList<>()).add(StandardCharsets.UTF_8.name());
+            Map<String, List<String>> requestHeaders = new HashMap<>(headers.map());
+            requestHeaders.computeIfAbsent("Accept-Charset", k -> new ArrayList<>()).add(StandardCharsets.UTF_8.name());
 
-            WebRequest request = new WebRequest(location, HttpHeaders.of(headers, (n, v) -> true), cookies);
+            WebRequest request = new WebRequest(location, HttpHeaders.of(requestHeaders, (n, v) -> true), cookies);
             return http.send(request)
                     .flatMap(response -> {
                         AtomicReference<Charset> responseCharset = new AtomicReference<>(OGScrapperUtils.charsetFrom(response.headers()));
@@ -107,16 +81,6 @@ public final class HeadScraperImpl implements HeadScraper {
 
                     .map(html -> Jsoup.parseBodyFragment(html, location.toString()))
                     .map(ogReader::read)
-
-                    .flatMap(og -> {
-                        Mono<Metas> resultOg = Mono.just(og);
-                        for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
-                            if (scrapperPlugin.isApplicable(location)) {
-                                resultOg = resultOg.flatMap(m -> scrapperPlugin.postTreatment(m.og()).map(m::withOg));
-                            }
-                        }
-                        return resultOg;
-                    })
 
                     .onErrorResume(e -> {
                         log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), location);

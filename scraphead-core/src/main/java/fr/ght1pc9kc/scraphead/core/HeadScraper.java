@@ -1,19 +1,15 @@
 package fr.ght1pc9kc.scraphead.core;
 
 import fr.ght1pc9kc.scraphead.core.model.Metas;
-import fr.ght1pc9kc.scraphead.core.model.links.Links;
-import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
-import fr.ght1pc9kc.scraphead.core.model.twitter.TwitterCard;
 import reactor.core.publisher.Mono;
 
+import java.net.HttpCookie;
 import java.net.URI;
+import java.net.http.HttpHeaders;
+import java.util.List;
 
 public interface HeadScraper {
     Mono<Metas> scrap(URI location);
 
-    Mono<OpenGraph> scrapOpenGraph(URI location);
-
-    Mono<TwitterCard> scrapTwitterCard(URI location);
-
-    Mono<Links> scrapLinks(URI location);
+    Mono<Metas> scrap(URI location, HttpHeaders headers, List<HttpCookie> cookies);
 }
