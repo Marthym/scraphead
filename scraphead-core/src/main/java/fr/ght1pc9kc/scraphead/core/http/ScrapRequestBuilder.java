@@ -64,6 +64,11 @@ public class ScrapRequestBuilder {
         return this;
     }
 
+    public ScrapRequestBuilder addCookie(HttpCookie cookie) {
+        cookies.add(cookie);
+        return this;
+    }
+
     public ScrapRequest build() {
         return new ScrapRequest(location, HttpHeaders.of(headers, ALLOWED_HEADERS), cookies);
     }
