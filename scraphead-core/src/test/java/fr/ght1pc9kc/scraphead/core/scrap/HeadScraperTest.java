@@ -160,9 +160,10 @@ class HeadScraperTest {
     void should_use_plugin() {
         URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
         HeadScraperImpl pluginTested = new HeadScraperImpl(webClient, ogReader);
-        StepVerifier.create(pluginTested.scrap(page,
-                        HttpHeaders.of(Map.of("X-Dummy", List.of("test")), (l, r) -> true),
-                        List.of(new HttpCookie("COOKIE_TEST", "test"))))
+        StepVerifier.create(pluginTested.scrap(WebRequest.builder(page)
+                        .addHeader("X-Dummy", "test")
+                        .addCookie("COOKIE_TEST", "test")
+                        .build()))
                 .expectNextCount(1)
                 .verifyComplete();
 

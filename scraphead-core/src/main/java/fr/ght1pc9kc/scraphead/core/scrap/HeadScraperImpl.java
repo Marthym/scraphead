@@ -3,6 +3,7 @@ package fr.ght1pc9kc.scraphead.core.scrap;
 import fr.ght1pc9kc.scraphead.core.HeadScraper;
 import fr.ght1pc9kc.scraphead.core.http.WebClient;
 import fr.ght1pc9kc.scraphead.core.http.WebRequest;
+import fr.ght1pc9kc.scraphead.core.http.WebRequestBuilder;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,18 +14,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
 
-import java.net.HttpCookie;
 import java.net.URI;
-import java.net.http.HttpHeaders;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
@@ -45,27 +40,29 @@ public final class HeadScraperImpl implements HeadScraper {
 
     @Override
     public Mono<Metas> scrap(URI location) {
-        return scrapHead(location, HttpHeaders.of(Map.of(), (n, v) -> true), List.of());
+        return scrapHead(WebRequest.builder(location).build());
     }
 
     @Override
-    public Mono<Metas> scrap(URI location, HttpHeaders headers, List<HttpCookie> cookies) {
-        return scrapHead(location, headers, cookies);
+    public Mono<Metas> scrap(WebRequest request) {
+        return scrapHead(request);
     }
 
-    private Mono<Metas> scrapHead(URI location, HttpHeaders headers, List<HttpCookie> cookies) {
+    private Mono<Metas> scrapHead(WebRequest request) {
         try {
-            Map<String, List<String>> requestHeaders = new HashMap<>(headers.map());
-            requestHeaders.computeIfAbsent("Accept-Charset", k -> new ArrayList<>()).add(StandardCharsets.UTF_8.name());
-
-            WebRequest request = new WebRequest(location, HttpHeaders.of(requestHeaders, (n, v) -> true), cookies);
-            return http.send(request)
+            WebRequest scrapRequest = request;
+            if (request.headers().firstValue("Accept-Charset").isEmpty()) {
+                scrapRequest = WebRequestBuilder.from(request)
+                        .addHeader("Accept-Charset", StandardCharsets.UTF_8.name())
+                        .build();
+            }
+            return http.send(scrapRequest)
                     .flatMap(response -> {
                         AtomicReference<Charset> responseCharset = new AtomicReference<>(OGScrapperUtils.charsetFrom(response.headers()));
 
                         return response.body()
 
-                                .switchOnFirst(computeCharacterEncoding(location, responseCharset))
+                                .switchOnFirst(computeCharacterEncoding(request.location(), responseCharset))
 
                                 .scan(new StringBuilder(), (sb, buff) -> {
                                     assert buff.hasArray();
@@ -77,18 +74,18 @@ public final class HeadScraperImpl implements HeadScraper {
 
                     })
                     .map(StringBuilder::toString)
-                    .doFirst(() -> log.trace("Receiving data from {}...", location))
+                    .doFirst(() -> log.trace("Receiving data from {}...", request.location()))
 
-                    .map(html -> Jsoup.parseBodyFragment(html, location.toString()))
+                    .map(html -> Jsoup.parseBodyFragment(html, request.location().toString()))
                     .map(ogReader::read)
 
                     .onErrorResume(e -> {
-                        log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), location);
+                        log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), request.location());
                         log.debug(STACKTRACE_DEBUG_MESSAGE, e);
                         return Mono.empty();
                     });
         } catch (Exception e) {
-            log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), location);
+            log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), request.location());
             log.debug(STACKTRACE_DEBUG_MESSAGE, e);
             return Mono.empty();
         }

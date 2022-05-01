@@ -10,4 +10,7 @@ public record WebRequest(
         HttpHeaders headers,
         List<HttpCookie> cookies
 ) {
+    public static WebRequestBuilder builder(URI location) {
+        return new WebRequestBuilder(location);
+    }
 }
