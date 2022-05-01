@@ -16,7 +16,7 @@ import java.util.TreeSet;
 import java.util.function.BiPredicate;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public class WebRequestBuilder {
+public class ScrapRequestBuilder {
     private static final Set<String> DISALLOWED_HEADERS_SET = getDisallowedHeaders();
     private static final BiPredicate<String, String>
             ALLOWED_HEADERS = (header, unused) -> !DISALLOWED_HEADERS_SET.contains(header);
@@ -26,14 +26,14 @@ public class WebRequestBuilder {
     private final Map<String, List<String>> headers = new HashMap<>();
     private final List<HttpCookie> cookies = new ArrayList<>();
 
-    private WebRequestBuilder(WebRequest copy) {
+    private ScrapRequestBuilder(ScrapRequest copy) {
         this.location = copy.location();
         this.headers.putAll(copy.headers().map());
         this.cookies.addAll(copy.cookies());
     }
 
-    public static WebRequestBuilder from(WebRequest copy) {
-        return new WebRequestBuilder(copy);
+    public static ScrapRequestBuilder from(ScrapRequest copy) {
+        return new ScrapRequestBuilder(copy);
     }
 
     private static Set<String> getDisallowedHeaders() {
@@ -42,7 +42,7 @@ public class WebRequestBuilder {
         return Collections.unmodifiableSet(headers);
     }
 
-    public WebRequestBuilder addHeader(String name, String value) {
+    public ScrapRequestBuilder addHeader(String name, String value) {
         headers.compute(name, (k, v) -> {
             List<String> newValue = v;
             if (newValue == null) {
@@ -54,12 +54,17 @@ public class WebRequestBuilder {
         return this;
     }
 
-    public WebRequestBuilder addCookie(String name, String value) {
-        cookies.add(new HttpCookie(name, value));
+    public ScrapRequestBuilder addCookie(String name, String value) {
+        HttpCookie cookie = new HttpCookie(name, value);
+        cookie.setHttpOnly(true);
+        if ("https".equals(location.getScheme())) {
+            cookie.setSecure(true);
+        }
+        cookies.add(cookie);
         return this;
     }
 
-    public WebRequest build() {
-        return new WebRequest(location, HttpHeaders.of(headers, ALLOWED_HEADERS), cookies);
+    public ScrapRequest build() {
+        return new ScrapRequest(location, HttpHeaders.of(headers, ALLOWED_HEADERS), cookies);
     }
 }

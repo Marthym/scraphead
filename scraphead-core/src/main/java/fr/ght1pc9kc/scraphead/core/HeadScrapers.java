@@ -1,6 +1,6 @@
 package fr.ght1pc9kc.scraphead.core;
 
-import fr.ght1pc9kc.scraphead.core.http.WebClient;
+import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
 import fr.ght1pc9kc.scraphead.core.scrap.DocumentMetaReader;
 import fr.ght1pc9kc.scraphead.core.scrap.HeadScraperImpl;
 import fr.ght1pc9kc.scraphead.core.scrap.MetaDataCollector;
@@ -16,13 +16,13 @@ import java.util.List;
  */
 @UtilityClass
 public class HeadScrapers {
-    public static HeadScraperBuilder builder(WebClient webClient) {
+    public static HeadScraperBuilder builder(ScrapClient webClient) {
         return new HeadScraperBuilder(webClient);
     }
 
     @RequiredArgsConstructor
     public static class HeadScraperBuilder {
-        private final WebClient webClient;
+        private final ScrapClient webClient;
 
         public HeadScraper build() {
             List<MetaDataCollector> metaDataCollectors = List.of(

@@ -1,9 +1,9 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
 import fr.ght1pc9kc.scraphead.core.HeadScraper;
-import fr.ght1pc9kc.scraphead.core.http.WebClient;
-import fr.ght1pc9kc.scraphead.core.http.WebRequest;
-import fr.ght1pc9kc.scraphead.core.http.WebRequestBuilder;
+import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
+import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
+import fr.ght1pc9kc.scraphead.core.http.ScrapRequestBuilder;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,25 +34,25 @@ public final class HeadScraperImpl implements HeadScraper {
     private static final String HEAD_END_TAG = "</head>";
     private static final Pattern CHARSET_EXTRACT = Pattern.compile("<meta.*?charset=[\"']?([^\"']+)");
 
-    private final WebClient http;
+    private final ScrapClient http;
 
     private final DocumentMetaReader ogReader;
 
     @Override
     public Mono<Metas> scrap(URI location) {
-        return scrapHead(WebRequest.builder(location).build());
+        return scrapHead(ScrapRequest.builder(location).build());
     }
 
     @Override
-    public Mono<Metas> scrap(WebRequest request) {
+    public Mono<Metas> scrap(ScrapRequest request) {
         return scrapHead(request);
     }
 
-    private Mono<Metas> scrapHead(WebRequest request) {
+    private Mono<Metas> scrapHead(ScrapRequest request) {
         try {
-            WebRequest scrapRequest = request;
+            ScrapRequest scrapRequest = request;
             if (request.headers().firstValue("Accept-Charset").isEmpty()) {
-                scrapRequest = WebRequestBuilder.from(request)
+                scrapRequest = ScrapRequestBuilder.from(request)
                         .addHeader("Accept-Charset", StandardCharsets.UTF_8.name())
                         .build();
             }

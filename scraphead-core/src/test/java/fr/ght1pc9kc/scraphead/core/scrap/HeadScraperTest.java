@@ -1,8 +1,8 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
-import fr.ght1pc9kc.scraphead.core.http.WebClient;
-import fr.ght1pc9kc.scraphead.core.http.WebRequest;
-import fr.ght1pc9kc.scraphead.core.http.WebResponse;
+import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
+import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
+import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
@@ -41,20 +41,20 @@ class HeadScraperTest {
     private final DocumentMetaReader ogReader = spy(new DocumentMetaReader(List.of(new OpenGraphCollector())));
     private HeadScraperImpl tested;
 
-    private final WebClient webClient = mock(WebClient.class);
+    private final ScrapClient webClient = mock(ScrapClient.class);
 
     @BeforeEach
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     void setUp() {
-        when(webClient.send(any(WebRequest.class))).thenAnswer(invocation -> {
-            WebRequest request = invocation.getArgument(0, WebRequest.class);
+        when(webClient.send(any(ScrapRequest.class))).thenAnswer(invocation -> {
+            ScrapRequest request = invocation.getArgument(0, ScrapRequest.class);
 
             if (!request.location().getPath().endsWith(".html")) {
                 Random rd = new Random();
                 byte[] arr = new byte[2048];
                 rd.nextBytes(arr);
                 return Mono.just(
-                        new WebResponse(200,
+                        new ScrapResponse(200,
                                 HttpHeaders.of(Map.of("content-type", List.of("application/octet-stream")), (l, r) -> true),
                                 Flux.just(ByteBuffer.wrap(arr)))
                 );
@@ -63,12 +63,12 @@ class HeadScraperTest {
             ByteBuffer byteBuffer;
             try (InputStream is = HeadScraperTest.class.getResourceAsStream(request.location().getPath().replaceAll("^/", ""))) {
                 if (is == null) {
-                    return Mono.just(new WebResponse(404, null, Flux.empty()));
+                    return Mono.just(new ScrapResponse(404, null, Flux.empty()));
                 }
 
                 byteBuffer = ByteBuffer.wrap(is.readAllBytes());
             }
-            return Mono.just(new WebResponse(200,
+            return Mono.just(new ScrapResponse(200,
                     HttpHeaders.of(Map.of("content-type", List.of("text/html")), (l, r) -> true), Flux.just(byteBuffer)));
         });
         reset(ogReader);
@@ -150,7 +150,7 @@ class HeadScraperTest {
     @Test
     void should_avoid_crash_when_error() {
         reset(webClient);
-        when(webClient.send(any(WebRequest.class))).thenThrow(new IllegalArgumentException());
+        when(webClient.send(any(ScrapRequest.class))).thenThrow(new IllegalArgumentException());
         URI page = URI.create("/relative/path");
         StepVerifier.create(tested.scrap(page).map(Metas::og))
                 .verifyComplete();
@@ -160,17 +160,17 @@ class HeadScraperTest {
     void should_use_plugin() {
         URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
         HeadScraperImpl pluginTested = new HeadScraperImpl(webClient, ogReader);
-        StepVerifier.create(pluginTested.scrap(WebRequest.builder(page)
+        StepVerifier.create(pluginTested.scrap(ScrapRequest.builder(page)
                         .addHeader("X-Dummy", "test")
                         .addCookie("COOKIE_TEST", "test")
                         .build()))
                 .expectNextCount(1)
                 .verifyComplete();
 
-        ArgumentCaptor<WebRequest> captor = ArgumentCaptor.forClass(WebRequest.class);
+        ArgumentCaptor<ScrapRequest> captor = ArgumentCaptor.forClass(ScrapRequest.class);
         verify(webClient).send(captor.capture());
 
-        WebRequest actual = captor.getValue();
+        ScrapRequest actual = captor.getValue();
         assertAll(
                 () -> Assertions.assertThat(actual.headers()).isEqualTo(HttpHeaders.of(Map.of(
                         "Accept-Charset", List.of("UTF-8"),
