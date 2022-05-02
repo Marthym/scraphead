@@ -1,13 +1,10 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
 import fr.ght1pc9kc.scraphead.core.HeadScraper;
-import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
-import fr.ght1pc9kc.scraphead.core.http.WebClient;
-import fr.ght1pc9kc.scraphead.core.http.WebRequest;
+import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
+import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
+import fr.ght1pc9kc.scraphead.core.http.ScrapRequestBuilder;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
-import fr.ght1pc9kc.scraphead.core.model.links.Links;
-import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
-import fr.ght1pc9kc.scraphead.core.model.twitter.TwitterCard;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -17,18 +14,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
 
-import java.net.HttpCookie;
 import java.net.URI;
-import java.net.http.HttpHeaders;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
@@ -43,55 +34,35 @@ public final class HeadScraperImpl implements HeadScraper {
     private static final String HEAD_END_TAG = "</head>";
     private static final Pattern CHARSET_EXTRACT = Pattern.compile("<meta.*?charset=[\"']?([^\"']+)");
 
-    private final WebClient http;
+    private final ScrapClient http;
 
     private final DocumentMetaReader ogReader;
 
-    private final List<ScraperPlugin> scrapperPlugins;
-
     @Override
     public Mono<Metas> scrap(URI location) {
-        return scrapHead(location);
+        return scrapHead(ScrapRequest.builder(location).build());
     }
 
     @Override
-    public Mono<OpenGraph> scrapOpenGraph(URI location) {
-        return scrapHead(location).map(Metas::og);
+    public Mono<Metas> scrap(ScrapRequest request) {
+        return scrapHead(request);
     }
 
-    @Override
-    public Mono<TwitterCard> scrapTwitterCard(URI location) {
-        return scrapHead(location).map(Metas::twitter);
-    }
-
-    @Override
-    public Mono<Links> scrapLinks(URI location) {
-        return scrapHead(location).map(Metas::links);
-    }
-
-    private Mono<Metas> scrapHead(URI location) {
+    private Mono<Metas> scrapHead(ScrapRequest request) {
         try {
-            Map<String, List<String>> headers = new HashMap<>();
-            List<HttpCookie> cookies = new ArrayList<>();
-            for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
-                if (scrapperPlugin.isApplicable(location)) {
-                    scrapperPlugin.additionalHeaders().forEach((k, v) -> {
-                        List<String> values = headers.computeIfAbsent(k, n -> new ArrayList<>());
-                        values.add(v);
-                    });
-                    cookies.addAll(scrapperPlugin.additionalCookies());
-                }
+            ScrapRequest scrapRequest = request;
+            if (request.headers().firstValue("Accept-Charset").isEmpty()) {
+                scrapRequest = ScrapRequestBuilder.from(request)
+                        .addHeader("Accept-Charset", StandardCharsets.UTF_8.name())
+                        .build();
             }
-            headers.computeIfAbsent("Accept-Charset", k -> new ArrayList<>()).add(StandardCharsets.UTF_8.name());
-
-            WebRequest request = new WebRequest(location, HttpHeaders.of(headers, (n, v) -> true), cookies);
-            return http.send(request)
+            return http.send(scrapRequest)
                     .flatMap(response -> {
                         AtomicReference<Charset> responseCharset = new AtomicReference<>(OGScrapperUtils.charsetFrom(response.headers()));
 
                         return response.body()
 
-                                .switchOnFirst(computeCharacterEncoding(location, responseCharset))
+                                .switchOnFirst(computeCharacterEncoding(request.location(), responseCharset))
 
                                 .scan(new StringBuilder(), (sb, buff) -> {
                                     assert buff.hasArray();
@@ -103,28 +74,18 @@ public final class HeadScraperImpl implements HeadScraper {
 
                     })
                     .map(StringBuilder::toString)
-                    .doFirst(() -> log.trace("Receiving data from {}...", location))
+                    .doFirst(() -> log.trace("Receiving data from {}...", request.location()))
 
-                    .map(html -> Jsoup.parseBodyFragment(html, location.toString()))
+                    .map(html -> Jsoup.parseBodyFragment(html, request.location().toString()))
                     .map(ogReader::read)
 
-                    .flatMap(og -> {
-                        Mono<Metas> resultOg = Mono.just(og);
-                        for (ScraperPlugin scrapperPlugin : scrapperPlugins) {
-                            if (scrapperPlugin.isApplicable(location)) {
-                                resultOg = resultOg.flatMap(m -> scrapperPlugin.postTreatment(m.og()).map(m::withOg));
-                            }
-                        }
-                        return resultOg;
-                    })
-
                     .onErrorResume(e -> {
-                        log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), location);
+                        log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), request.location());
                         log.debug(STACKTRACE_DEBUG_MESSAGE, e);
                         return Mono.empty();
                     });
         } catch (Exception e) {
-            log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), location);
+            log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), request.location());
             log.debug(STACKTRACE_DEBUG_MESSAGE, e);
             return Mono.empty();
         }

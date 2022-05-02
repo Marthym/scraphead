@@ -1,9 +1,9 @@
 package fr.ght1pc9kc.scraphead.netty.http;
 
 
-import fr.ght1pc9kc.scraphead.core.http.WebClient;
-import fr.ght1pc9kc.scraphead.core.http.WebRequest;
-import fr.ght1pc9kc.scraphead.core.http.WebResponse;
+import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
+import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
+import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Netty Reactor implementation for {@link WebClient}.
+ * Netty Reactor implementation for {@link ScrapClient}.
  *
  * <strong>Feature:</strong>
  * <ul>
@@ -38,14 +38,14 @@ import java.util.Set;
  * </ul>
  */
 @Slf4j
-public class NettyWebClient implements WebClient {
+public class NettyScrapClient implements ScrapClient {
     private static final int MAX_FRAME_LENGTH = 600_000;
     private static final ByteBuf FRAME_HEAD_DELIMITER = Unpooled.wrappedBuffer("</head>".getBytes(StandardCharsets.UTF_8));
     private static final ByteBuf FRAME_BODY_DELIMITER = Unpooled.wrappedBuffer("<body".getBytes(StandardCharsets.UTF_8));
 
     private final HttpClient http;
 
-    public NettyWebClient() {
+    public NettyScrapClient() {
         this.http = HttpClient.create()
                 .doOnConnected(c -> c.addHandler(new DelimiterBasedFrameDecoder(MAX_FRAME_LENGTH, FRAME_HEAD_DELIMITER, FRAME_BODY_DELIMITER))) //FIXME: when reactor-netty {@link HttpOperations} will implement addHandlerLast
                 .secure(spec -> spec.sslContext(Http11SslContextSpec.forClient()))
@@ -55,7 +55,7 @@ public class NettyWebClient implements WebClient {
     }
 
     @Override
-    public Mono<WebResponse> send(WebRequest request) {
+    public Mono<ScrapResponse> send(ScrapRequest request) {
         HttpClient config = http.headers(headers -> request.headers().map().forEach(headers::add));
         for (HttpCookie cookie : request.cookies()) {
             config.cookie(new DefaultCookie(cookie.getName(), cookie.getValue()));
@@ -79,7 +79,7 @@ public class NettyWebClient implements WebClient {
                         Map<String, List<String>> headers = new HashMap<>();
                         res.responseHeaders().forEach(h ->
                                 headers.computeIfAbsent(h.getKey().toLowerCase(), k -> new ArrayList<>()).add(h.getValue()));
-                        return new WebResponse(res.status().code(), HttpHeaders.of(headers, (k, v) -> true), Flux.just(ByteBuffer.wrap(buff)));
+                        return new ScrapResponse(res.status().code(), HttpHeaders.of(headers, (k, v) -> true), Flux.just(ByteBuffer.wrap(buff)));
                     });
                 }).next();
     }

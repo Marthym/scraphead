@@ -7,7 +7,7 @@ import reactor.core.publisher.Flux;
 import java.net.http.HttpHeaders;
 import java.nio.ByteBuffer;
 
-public record WebResponse(
+public record ScrapResponse(
         int status,
         @Nullable HttpHeaders headers,
         @NotNull Flux<ByteBuffer> body
