@@ -2,6 +2,7 @@ package fr.ght1pc9kc.scraphead.netty.http;
 
 import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
 import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
+import fr.ght1pc9kc.scraphead.netty.http.config.NettyClientBuilder;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
@@ -79,7 +80,7 @@ class NettyScrapClientTest {
 
     @BeforeEach
     void setUp() {
-        tested = new NettyScrapClient();
+        tested = new NettyScrapClient(NettyClientBuilder.getNettyHttpClient());
     }
 
     @Test
