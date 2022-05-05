@@ -37,6 +37,7 @@
     <modules>
         <module>scraphead-core</module>
         <module>scraphead-netty</module>
+        <module>scraphead-spring</module>
     </modules>
 
     <properties>
