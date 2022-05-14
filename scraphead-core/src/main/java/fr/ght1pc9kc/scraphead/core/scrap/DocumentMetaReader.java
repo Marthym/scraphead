@@ -28,6 +28,10 @@ public final class DocumentMetaReader {
                 case OPENGRAPH -> mBuilder.og((OpenGraph) meta);
                 case TWITTER_CARD -> mBuilder.twitter((TwitterCard) meta);
                 case LINK -> mBuilder.links((Links) meta);
+                case META -> {
+                    String[] strings = (String[]) meta;
+                    mBuilder.title(strings[0]).description(strings[1]);
+                }
                 default -> log.debug("Meta type {} unknown !", collector.type());
             }
         }
