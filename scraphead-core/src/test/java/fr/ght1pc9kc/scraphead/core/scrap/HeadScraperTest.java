@@ -6,6 +6,7 @@ import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.MetaTitleDescrCollector;
 import fr.ght1pc9kc.scraphead.core.scrap.collectors.OpenGraphCollector;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +39,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HeadScraperTest {
-    private final DocumentMetaReader ogReader = spy(new DocumentMetaReader(List.of(new OpenGraphCollector())));
+    private final DocumentMetaReader ogReader = spy(new DocumentMetaReader(List.of(
+            new MetaTitleDescrCollector(),
+            new OpenGraphCollector()
+    )));
     private HeadScraperImpl tested;
 
     private final ScrapClient webClient = mock(ScrapClient.class);
@@ -89,6 +93,19 @@ class HeadScraperTest {
                 .url(new URL("https://blog.i-run.si/posts/silife/infra-de-paris-a-toulouse/"))
                 .image(URI.create("https://blog.i-run.si/posts/silife/infra-de-paris-a-toulouse/featured.jpg"))
                 .build());
+    }
+
+    @Test
+    void should_parse_title_and_descr() {
+        URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
+        StepVerifier.create(tested.scrap(page))
+                .assertNext(actual -> assertAll(
+                        () -> Assertions.assertThat(actual.title()).isEqualTo("De Paris à Toulouse • wi-run, the code"),
+                        () -> Assertions.assertThat(actual.description()).isEqualTo("Déplacement des serveurs de " +
+                                "l’infrastructure i-Run depuis Paris jusqu’à Toulouse chez notre hébergeur FullSave. " +
+                                "Nouvelles machines, nouvelle infra pour plus de résilience et une meilleure tenue de " +
+                                "la charge sur les sites publics comme sur le backoffice.")
+                )).verifyComplete();
     }
 
     @Test
