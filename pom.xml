@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.ght1pc9kc</groupId>
@@ -52,6 +53,8 @@
         <reactor.version>3.4.18</reactor.version>
         <netty.version>1.0.19</netty.version>
         <jsoup.version>1.15.1</jsoup.version>
+        <spring.version>5.3.19</spring.version>
+        <spring-boot.version>2.6.7</spring-boot.version>
 
         <mockserver-netty.version>5.13.2</mockserver-netty.version>
         <junit.version>5.8.2</junit.version>
@@ -73,7 +76,7 @@
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
 
-        <surefire.argline.opens />
+        <surefire.argline.opens/>
     </properties>
 
     <dependencyManagement>
@@ -109,6 +112,21 @@
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webflux</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-autoconfigure</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
 
             <!-- TEST-->

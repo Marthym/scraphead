@@ -16,7 +16,7 @@ public class ScrapheadWebClientConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    WebClient scrapheadWebclient() {
+    public WebClient scrapheadWebclient() {
         return WebClient.builder().clientConnector(new ReactorClientHttpConnector(
                 HttpClient.create()
                         .secure(spec -> spec.sslContext(Http11SslContextSpec.forClient()))

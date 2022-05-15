@@ -1,6 +1,8 @@
 module scraphead.spring {
     requires static lombok;
 
+    requires io.netty.codec.http;
+    requires io.netty.codec;
     requires java.net.http;
     requires org.reactivestreams;
     requires org.slf4j;
