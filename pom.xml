@@ -48,9 +48,9 @@
         <lombok.version>1.18.24</lombok.version>
         <jetbrains.version>23.0.0</jetbrains.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <reactor.version>3.4.17</reactor.version>
-        <netty.version>1.0.18</netty.version>
-        <jsoup.version>1.14.3</jsoup.version>
+        <reactor.version>3.4.18</reactor.version>
+        <netty.version>1.0.19</netty.version>
+        <jsoup.version>1.15.1</jsoup.version>
 
         <mockserver-netty.version>5.13.2</mockserver-netty.version>
         <junit.version>5.8.2</junit.version>

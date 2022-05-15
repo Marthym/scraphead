@@ -14,4 +14,16 @@ class HeadScrapersTest {
 
         Assertions.assertThat(actual).isNotNull();
     }
+
+    @Test
+    void should_build_head_scraper_with_use() {
+        ScrapClient scrapClient = mock(ScrapClient.class);
+        HeadScraper actual = HeadScrapers.builder(scrapClient)
+                .useMetaTitleAndDescr()
+                .useOpengraph()
+                .useLinks()
+                .build();
+
+        Assertions.assertThat(actual).isNotNull();
+    }
 }
