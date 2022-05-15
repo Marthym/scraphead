@@ -1,7 +1,7 @@
 package fr.ght1pc9kc.scraphead.netty.http;
 
-import fr.ght1pc9kc.scraphead.core.http.WebRequest;
-import fr.ght1pc9kc.scraphead.core.http.WebResponse;
+import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
+import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
@@ -30,10 +30,10 @@ import java.util.Objects;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-class NettyWebClientTest {
+class NettyScrapClientTest {
     private static ClientAndServer mockServer;
 
-    private NettyWebClient tested;
+    private NettyScrapClient tested;
 
     @BeforeAll
     static void setUpAll() {
@@ -69,7 +69,7 @@ class NettyWebClientTest {
     }
 
     private static String getBodyFromResource(String file) {
-        try (InputStream ras = NettyWebClientTest.class.getClassLoader().getResourceAsStream(file)) {
+        try (InputStream ras = NettyScrapClientTest.class.getClassLoader().getResourceAsStream(file)) {
             return IOUtils.toString(Objects.requireNonNull(ras), StandardCharsets.UTF_8);
         } catch (IOException e) {
             Assertions.fail("Unable to get resource", e);
@@ -79,17 +79,17 @@ class NettyWebClientTest {
 
     @BeforeEach
     void setUp() {
-        tested = new NettyWebClient();
+        tested = new NettyScrapClient();
     }
 
     @Test
     void should_send_request() {
         Integer port = mockServer.getLocalPort();
 
-        Flux<ByteBuffer> actual = tested.send(new WebRequest(
+        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
                         URI.create("http://localhost:" + port + "/og-head-test.html"),
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMapMany(WebResponse::body);
+                .flatMapMany(ScrapResponse::body);
 
         StepVerifier.create(actual)
                 .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
@@ -101,10 +101,10 @@ class NettyWebClientTest {
     void should_send_request_with_no_head() {
         Integer port = mockServer.getLocalPort();
 
-        Flux<ByteBuffer> actual = tested.send(new WebRequest(
+        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
                         URI.create("http://localhost:" + port + "/og-nohead-test.html"),
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMapMany(WebResponse::body);
+                .flatMapMany(ScrapResponse::body);
 
         StepVerifier.create(actual)
                 .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
@@ -116,10 +116,10 @@ class NettyWebClientTest {
     void should_send_request_for_non_html() {
         Integer port = mockServer.getLocalPort();
 
-        Flux<ByteBuffer> actual = tested.send(new WebRequest(
+        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
                         URI.create("http://localhost:" + port + "/test.json"),
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMapMany(WebResponse::body);
+                .flatMapMany(ScrapResponse::body);
 
         StepVerifier.create(actual).verifyComplete();
     }
@@ -128,10 +128,10 @@ class NettyWebClientTest {
     void should_send_request_for_heavy_payload() {
         Integer port = mockServer.getLocalPort();
 
-        Flux<ByteBuffer> actual = tested.send(new WebRequest(
+        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
                         URI.create("http://localhost:" + port + "/the-cantina-band.mp3"),
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMapMany(WebResponse::body);
+                .flatMapMany(ScrapResponse::body);
 
         StepVerifier.create(actual).verifyComplete();
     }

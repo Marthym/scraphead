@@ -5,9 +5,12 @@ import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.util.List;
 
-public record WebRequest(
+public record ScrapRequest(
         URI location,
         HttpHeaders headers,
         List<HttpCookie> cookies
 ) {
+    public static ScrapRequestBuilder builder(URI location) {
+        return new ScrapRequestBuilder(location);
+    }
 }

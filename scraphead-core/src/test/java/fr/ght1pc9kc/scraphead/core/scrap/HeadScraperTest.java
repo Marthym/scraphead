@@ -1,22 +1,25 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
-import fr.ght1pc9kc.scraphead.core.ScraperPlugin;
-import fr.ght1pc9kc.scraphead.core.http.WebClient;
-import fr.ght1pc9kc.scraphead.core.http.WebRequest;
-import fr.ght1pc9kc.scraphead.core.http.WebResponse;
+import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
+import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
+import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
+import fr.ght1pc9kc.scraphead.core.model.Metas;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.MetaTitleDescrCollector;
 import fr.ght1pc9kc.scraphead.core.scrap.collectors.OpenGraphCollector;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.io.InputStream;
+import java.net.HttpCookie;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -36,22 +39,26 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HeadScraperTest {
-    private final DocumentMetaReader ogReader = spy(new DocumentMetaReader(List.of(new OpenGraphCollector())));
+    private final DocumentMetaReader ogReader = spy(new DocumentMetaReader(List.of(
+            new MetaTitleDescrCollector(),
+            new OpenGraphCollector()
+    )));
     private HeadScraperImpl tested;
 
-    private final WebClient webClient = mock(WebClient.class);
+    private final ScrapClient webClient = mock(ScrapClient.class);
 
     @BeforeEach
+    @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     void setUp() {
-        when(webClient.send(any(WebRequest.class))).thenAnswer(invocation -> {
-            WebRequest request = invocation.getArgument(0, WebRequest.class);
+        when(webClient.send(any(ScrapRequest.class))).thenAnswer(invocation -> {
+            ScrapRequest request = invocation.getArgument(0, ScrapRequest.class);
 
             if (!request.location().getPath().endsWith(".html")) {
                 Random rd = new Random();
                 byte[] arr = new byte[2048];
                 rd.nextBytes(arr);
                 return Mono.just(
-                        new WebResponse(200,
+                        new ScrapResponse(200,
                                 HttpHeaders.of(Map.of("content-type", List.of("application/octet-stream")), (l, r) -> true),
                                 Flux.just(ByteBuffer.wrap(arr)))
                 );
@@ -60,22 +67,22 @@ class HeadScraperTest {
             ByteBuffer byteBuffer;
             try (InputStream is = HeadScraperTest.class.getResourceAsStream(request.location().getPath().replaceAll("^/", ""))) {
                 if (is == null) {
-                    return Mono.just(new WebResponse(404, null, Flux.empty()));
+                    return Mono.just(new ScrapResponse(404, null, Flux.empty()));
                 }
 
                 byteBuffer = ByteBuffer.wrap(is.readAllBytes());
             }
-            return Mono.just(new WebResponse(200,
+            return Mono.just(new ScrapResponse(200,
                     HttpHeaders.of(Map.of("content-type", List.of("text/html")), (l, r) -> true), Flux.just(byteBuffer)));
         });
         reset(ogReader);
-        tested = new HeadScraperImpl(webClient, ogReader, List.of());
+        tested = new HeadScraperImpl(webClient, ogReader);
     }
 
     @Test
     void should_parse_opengraph() throws MalformedURLException {
         URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
-        OpenGraph actual = tested.scrapOpenGraph(page).block();
+        OpenGraph actual = tested.scrap(page).map(Metas::og).block();
 
         Assertions.assertThat(actual).isEqualTo(OpenGraph.builder()
                 .title("De Paris à Toulouse")
@@ -89,22 +96,35 @@ class HeadScraperTest {
     }
 
     @Test
+    void should_parse_title_and_descr() {
+        URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
+        StepVerifier.create(tested.scrap(page))
+                .assertNext(actual -> assertAll(
+                        () -> Assertions.assertThat(actual.title()).isEqualTo("De Paris à Toulouse • wi-run, the code"),
+                        () -> Assertions.assertThat(actual.description()).isEqualTo("Déplacement des serveurs de " +
+                                "l’infrastructure i-Run depuis Paris jusqu’à Toulouse chez notre hébergeur FullSave. " +
+                                "Nouvelles machines, nouvelle infra pour plus de résilience et une meilleure tenue de " +
+                                "la charge sur les sites publics comme sur le backoffice.")
+                )).verifyComplete();
+    }
+
+    @Test
     void should_parse_opengraph_with_empty_fields() throws MalformedURLException {
         URI page = URI.create("https://blog.ght1pc9kc.fr/ght-bad-parsing.html");
-        OpenGraph actual = tested.scrapOpenGraph(page).block();
+        OpenGraph actual = tested.scrap(page).map(Metas::og).block();
 
         Assertions.assertThat(actual).isEqualTo(OpenGraph.builder()
                 .title("Les Critères de recherche avec Juery")
                 .type(OGType.ARTICLE)
                 .url(new URL("https://blog.ght1pc9kc.fr/2021/les-crit%C3%A8res-de-recherche-avec-juery.html"))
-                        .description("")
+                .description("")
                 .build());
     }
 
     @Test
     void should_parse_opengraph_with_apostrophe() {
         URI page = URI.create("https://blog.ght1pc9kc.fr/apostrophe.html");
-        OpenGraph actual = tested.scrapOpenGraph(page).block();
+        OpenGraph actual = tested.scrap(page).map(Metas::og).block();
 
         Assertions.assertThat(actual).isNotNull();
         assertAll(
@@ -118,7 +138,7 @@ class HeadScraperTest {
     @Test
     void should_parse_non_utf8_file() {
         URI page = URI.create("https://blog.ght1pc9kc.fr/dev-empty-metas-error.html");
-        OpenGraph actual = tested.scrapOpenGraph(page).block();
+        OpenGraph actual = tested.scrap(page).map(Metas::og).block();
 
         Assertions.assertThat(actual).isNotNull();
         assertAll(
@@ -139,7 +159,7 @@ class HeadScraperTest {
     })
     void should_parse_no_encoding_file(String url) {
         URI page = URI.create(url);
-        StepVerifier.create(tested.scrapOpenGraph(page))
+        StepVerifier.create(tested.scrap(page).map(Metas::og))
                 .expectNextMatches(OpenGraph::isEmpty)
                 .verifyComplete();
     }
@@ -147,36 +167,35 @@ class HeadScraperTest {
     @Test
     void should_avoid_crash_when_error() {
         reset(webClient);
-        when(webClient.send(any(WebRequest.class))).thenThrow(new IllegalArgumentException());
+        when(webClient.send(any(ScrapRequest.class))).thenThrow(new IllegalArgumentException());
         URI page = URI.create("/relative/path");
-        StepVerifier.create(tested.scrapOpenGraph(page))
+        StepVerifier.create(tested.scrap(page).map(Metas::og))
                 .verifyComplete();
     }
 
     @Test
-    void should_use_plugin() throws MalformedURLException {
+    void should_use_plugin() {
         URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
-        OpenGraph og = OpenGraph.builder()
-                .title("De Paris à Toulouse")
-                .description("Déplacement des serveurs de l’infrastructure i-Run depuis Paris jusqu’à Toulouse chez " +
-                        "notre hébergeur FullSave. Nouvelles machines, nouvelle infra pour plus de résilience et une " +
-                        "meilleure tenue de la charge sur les sites publics comme sur le backoffice.")
-                .type(OGType.ARTICLE)
-                .url(new URL("https://blog.i-run.si/posts/silife/infra-de-paris-a-toulouse/"))
-                .image(URI.create("https://blog.i-run.si/posts/silife/infra-de-paris-a-toulouse/featured.jpg"))
-                .build();
+        HeadScraperImpl pluginTested = new HeadScraperImpl(webClient, ogReader);
+        StepVerifier.create(pluginTested.scrap(ScrapRequest.builder(page)
+                        .addHeader("X-Dummy", "test")
+                        .addCookie("COOKIE_TEST", "test")
+                        .build()))
+                .expectNextCount(1)
+                .verifyComplete();
 
-        ScraperPlugin plugin = mock(ScraperPlugin.class);
-        when(plugin.additionalCookies()).thenReturn(List.of());
-        when(plugin.additionalHeaders()).thenReturn(Map.of("X-Dummies", "DUMMY HEADER"));
-        when(plugin.isApplicable(any())).thenReturn(true);
-        when(plugin.postTreatment(any())).thenReturn(Mono.just(og));
+        ArgumentCaptor<ScrapRequest> captor = ArgumentCaptor.forClass(ScrapRequest.class);
+        verify(webClient).send(captor.capture());
 
-        HeadScraperImpl pluginTested = new HeadScraperImpl(webClient, ogReader, List.of(plugin));
-        StepVerifier.create(pluginTested.scrapOpenGraph(page)).expectNext(og).verifyComplete();
-
-        verify(plugin).additionalCookies();
-        verify(plugin).additionalHeaders();
-        verify(plugin).postTreatment(any());
+        ScrapRequest actual = captor.getValue();
+        assertAll(
+                () -> Assertions.assertThat(actual.headers()).isEqualTo(HttpHeaders.of(Map.of(
+                        "Accept-Charset", List.of("UTF-8"),
+                        "X-Dummy", List.of("test")
+                ), (l, r) -> true)),
+                () -> Assertions.assertThat(actual.cookies()).isEqualTo(List.of(
+                        new HttpCookie("COOKIE_TEST", "test")
+                ))
+        );
     }
 }
