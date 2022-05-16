@@ -24,7 +24,7 @@ the web client.
 * Allow plugins for specific treatment *(depending on domain for example)*
 * build for Java 17 and modules
 
-## Usage
+## Installation
 
 ```xml
 <dependency>
@@ -38,4 +38,29 @@ the web client.
     <artifactId>scraphead-netty</artifactId>
     <version>${scraphead.version}</version>
 </dependency>
+```
+
+## Usage
+
+With all collectors :
+
+```java
+ScrapClient scrapHttpClient = new NettyScrapClient();
+HeadScraper scraper = HeadScrapers.builder(scrapHttpClient).build();
+scraper.scrap(URI.create("https://blog.ght1pc9kc.fr/2021/server-sent-event-vs-websocket-avec-spring-webflux.html"))
+    .map(doWhatEverYouWantWithMeta)
+    .subscribe();
+```
+
+With limited collectors' usage :
+
+```java
+ScrapClient scrapClient = new NettyScrapClient();
+HeadScraper scraper = HeadScrapers.builder(scrapClient)
+  .useMetaTitleAndDescr()
+  .useOpengraph()
+  .build();
+scraper.scrap(URI.create("https://blog.ght1pc9kc.fr/2021/server-sent-event-vs-websocket-avec-spring-webflux.html"))
+  .map(doWhatEverYouWantWithMeta)
+  .subscribe();
 ```

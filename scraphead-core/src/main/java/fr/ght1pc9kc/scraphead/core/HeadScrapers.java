@@ -15,6 +15,24 @@ import java.util.List;
 
 /**
  * Builder for {@link HeadScraper}
+ *
+ * <p>With all collectors :</p>
+ * <pre>{@code
+ *  ScrapClient scrapClient = new NettyScrapClient();
+ *  return HeadScrapers.builder(scrapClient)
+ *      .useMetaTitleAndDescr()
+ *      .useOpengraph()
+ *      .build();
+ * }</pre>
+ *
+ * <p>With limited collectors usage :</p>
+ * <pre>{@code
+ *  ScrapClient scrapClient = new NettyScrapClient();
+ *  return HeadScrapers.builder(scrapClient)
+ *      .useMetaTitleAndDescr()
+ *      .useOpengraph()
+ *      .build();
+ * }</pre>
  */
 @UtilityClass
 public class HeadScrapers {
