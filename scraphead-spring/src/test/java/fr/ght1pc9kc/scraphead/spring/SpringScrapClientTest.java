@@ -1,10 +1,12 @@
-package fr.ght1pc9kc.scraphead.netty.http;
+package fr.ght1pc9kc.scraphead.spring;
 
 import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
 import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
-import fr.ght1pc9kc.scraphead.netty.http.config.NettyClientBuilder;
+import fr.ght1pc9kc.scraphead.core.model.ex.UnsupportedContentTypeException;
+import fr.ght1pc9kc.scraphead.spring.config.ScrapheadWebClientConfiguration;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,6 +17,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.matchers.Times;
 import org.mockserver.model.Header;
 import org.mockserver.model.MediaType;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -31,10 +34,10 @@ import java.util.Objects;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-class NettyScrapClientTest {
+class SpringScrapClientTest {
     private static ClientAndServer mockServer;
 
-    private NettyScrapClient tested;
+    private SpringScrapClient tested;
 
     @BeforeAll
     static void setUpAll() {
@@ -46,12 +49,14 @@ class NettyScrapClientTest {
                 .respond(response()
                         .withStatusCode(200)
                         .withBody(getBodyFromResource("og-head-test.html")));
+
         mockServer.when(request()
                         .withMethod("GET")
                         .withPath("/og-nohead-test.html"), Times.exactly(1))
                 .respond(response()
                         .withStatusCode(200)
                         .withBody(getBodyFromResource("og-nohead-test.html")));
+
         mockServer.when(request()
                         .withMethod("GET")
                         .withPath("/test.json"), Times.exactly(1))
@@ -59,18 +64,19 @@ class NettyScrapClientTest {
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON_UTF_8)
                         .withBody("FAIL"));
+
         mockServer.when(request()
                         .withMethod("GET")
                         .withPath("/the-cantina-band.mp3"), Times.exactly(1))
                 .respond(response()
                         .withStatusCode(200)
                         .withHeaders(
-                                new Header(HttpHeaderNames.CONTENT_LENGTH.toString(), "1200001"))
-                        .withBody(""));
+                                new Header(HttpHeaderNames.CONTENT_LENGTH.toString(), Integer.toString(3 * 1024 * 1024)))
+                        .withBody(RandomUtils.nextBytes(3 * 1024 * 1024)));
     }
 
     private static String getBodyFromResource(String file) {
-        try (InputStream ras = NettyScrapClientTest.class.getClassLoader().getResourceAsStream(file)) {
+        try (InputStream ras = SpringScrapClientTest.class.getClassLoader().getResourceAsStream(file)) {
             return IOUtils.toString(Objects.requireNonNull(ras), StandardCharsets.UTF_8);
         } catch (IOException e) {
             Assertions.fail("Unable to get resource", e);
@@ -80,7 +86,8 @@ class NettyScrapClientTest {
 
     @BeforeEach
     void setUp() {
-        tested = new NettyScrapClient(NettyClientBuilder.getNettyHttpClient());
+        WebClient webClient = new ScrapheadWebClientConfiguration().scrapheadWebclient();
+        tested = new SpringScrapClient(webClient);
     }
 
     @Test
@@ -122,7 +129,8 @@ class NettyScrapClientTest {
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
                 .flatMapMany(ScrapResponse::body);
 
-        StepVerifier.create(actual).verifyComplete();
+        StepVerifier.create(actual)
+                .verifyError(UnsupportedContentTypeException.class);
     }
 
     @Test
@@ -134,7 +142,8 @@ class NettyScrapClientTest {
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
                 .flatMapMany(ScrapResponse::body);
 
-        StepVerifier.create(actual).verifyComplete();
+        StepVerifier.create(actual)
+                .verifyError(IllegalStateException.class);
     }
 
     @AfterAll
