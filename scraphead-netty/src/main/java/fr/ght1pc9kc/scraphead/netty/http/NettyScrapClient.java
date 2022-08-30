@@ -4,6 +4,9 @@ package fr.ght1pc9kc.scraphead.netty.http;
 import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
 import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
 import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
@@ -15,6 +18,7 @@ import reactor.netty.http.client.HttpClient;
 import java.net.HttpCookie;
 import java.net.http.HttpHeaders;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +26,6 @@ import java.util.Map;
 
 /**
  * Netty Reactor implementation for {@link ScrapClient}.
- *
  * <strong>Feature:</strong>
  * <ul>
  *     <li>SSL enable</li>
@@ -34,11 +37,14 @@ import java.util.Map;
 @Slf4j
 public class NettyScrapClient implements ScrapClient {
     private static final int MAX_FRAME_LENGTH = 600_000;
+    private static final ByteBuf FRAME_HEAD_DELIMITER = Unpooled.wrappedBuffer("</head>".getBytes(StandardCharsets.UTF_8));
+    private static final ByteBuf FRAME_BODY_DELIMITER = Unpooled.wrappedBuffer("<body".getBytes(StandardCharsets.UTF_8));
 
     private final HttpClient http;
 
     public NettyScrapClient(HttpClient reactiveClient) {
-        this.http = reactiveClient;
+        this.http = reactiveClient.doOnConnected(c ->
+                c.addHandler(new DelimiterBasedFrameDecoder(MAX_FRAME_LENGTH, FRAME_HEAD_DELIMITER, FRAME_BODY_DELIMITER)));//FIXME: when reactor-netty {@link HttpOperations} will implement addHandlerLast
     }
 
     @Override
