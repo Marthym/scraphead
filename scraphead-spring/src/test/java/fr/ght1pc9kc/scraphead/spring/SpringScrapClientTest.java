@@ -33,6 +33,7 @@ import java.util.Objects;
 
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 class SpringScrapClientTest {
     private static ClientAndServer mockServer;
@@ -43,6 +44,22 @@ class SpringScrapClientTest {
     static void setUpAll() {
         ConfigurationProperties.logLevel("WARN");
         mockServer = ClientAndServer.startClientAndServer();
+        mockServer.when(request()
+                        .withMethod("GET")
+                        .withPath("/invalid-content-type.html"), Times.exactly(1))
+                .respond(response()
+                        .withStatusCode(200)
+                        .withHeader(CONTENT_TYPE, "text/html, charset=iso-8859-1")
+                        .withBody(getBodyFromResource("og-head-test.html")));
+
+        mockServer.when(request()
+                        .withMethod("GET")
+                        .withPath("/bad-content-type.html"), Times.exactly(1))
+                .respond(response()
+                        .withStatusCode(200)
+                        .withHeader(CONTENT_TYPE, "text/html: charset=iso-8859-1")
+                        .withBody(getBodyFromResource("og-head-test.html")));
+
         mockServer.when(request()
                         .withMethod("GET")
                         .withPath("/og-head-test.html"), Times.exactly(1))
@@ -144,6 +161,36 @@ class SpringScrapClientTest {
 
         StepVerifier.create(actual)
                 .verifyError(IllegalStateException.class);
+    }
+
+    @Test
+    void should_send_request_with_recoverable_invalid_content_type() {
+        Integer port = mockServer.getLocalPort();
+
+        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
+                        URI.create("http://localhost:" + port + "/invalid-content-type.html"),
+                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
+                .flatMapMany(ScrapResponse::body);
+
+        StepVerifier.create(actual)
+                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
+                        .endsWith("<link rel=\"stylesheet\" href=\"https://blog.i-run.si/css/bundle.min.css\">\n"))
+                .verifyComplete();
+    }
+
+    @Test
+    void should_send_request_with_invalid_content_type() {
+        Integer port = mockServer.getLocalPort();
+
+        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
+                        URI.create("http://localhost:" + port + "/bad-content-type.html"),
+                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
+                .flatMapMany(ScrapResponse::body);
+
+        StepVerifier.create(actual)
+                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
+                        .endsWith("<link rel=\"stylesheet\" href=\"https://blog.i-run.si/css/bundle.min.css\">\n"))
+                .verifyComplete();
     }
 
     @AfterAll
