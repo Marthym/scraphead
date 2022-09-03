@@ -12,6 +12,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockserver.configuration.ConfigurationProperties;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.matchers.Times;
@@ -107,33 +109,24 @@ class SpringScrapClientTest {
         tested = new SpringScrapClient(webClient);
     }
 
-    @Test
-    void should_send_request() {
+    @ParameterizedTest
+    @CsvSource({
+            "/og-head-test.html",
+            "/og-nohead-test.html",
+            "/invalid-content-type.html",
+            "/bad-content-type.html",
+    })
+    void should_send_request(String path) {
         Integer port = mockServer.getLocalPort();
 
         Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
-                        URI.create("http://localhost:" + port + "/og-head-test.html"),
+                        URI.create("http://localhost:" + port + path),
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
                 .flatMapMany(ScrapResponse::body);
 
         StepVerifier.create(actual)
                 .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
                         .endsWith("<link rel=\"stylesheet\" href=\"https://blog.i-run.si/css/bundle.min.css\">\n"))
-                .verifyComplete();
-    }
-
-    @Test
-    void should_send_request_with_no_head() {
-        Integer port = mockServer.getLocalPort();
-
-        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
-                        URI.create("http://localhost:" + port + "/og-nohead-test.html"),
-                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMapMany(ScrapResponse::body);
-
-        StepVerifier.create(actual)
-                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
-                        .endsWith("<link rel=\"stylesheet\" href=\"https://blog.i-run.si/css/bundle.min.css\">\n\n"))
                 .verifyComplete();
     }
 
@@ -161,36 +154,6 @@ class SpringScrapClientTest {
 
         StepVerifier.create(actual)
                 .verifyError(IllegalStateException.class);
-    }
-
-    @Test
-    void should_send_request_with_recoverable_invalid_content_type() {
-        Integer port = mockServer.getLocalPort();
-
-        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
-                        URI.create("http://localhost:" + port + "/invalid-content-type.html"),
-                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMapMany(ScrapResponse::body);
-
-        StepVerifier.create(actual)
-                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
-                        .endsWith("<link rel=\"stylesheet\" href=\"https://blog.i-run.si/css/bundle.min.css\">\n"))
-                .verifyComplete();
-    }
-
-    @Test
-    void should_send_request_with_invalid_content_type() {
-        Integer port = mockServer.getLocalPort();
-
-        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
-                        URI.create("http://localhost:" + port + "/bad-content-type.html"),
-                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMapMany(ScrapResponse::body);
-
-        StepVerifier.create(actual)
-                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
-                        .endsWith("<link rel=\"stylesheet\" href=\"https://blog.i-run.si/css/bundle.min.css\">\n"))
-                .verifyComplete();
     }
 
     @AfterAll
