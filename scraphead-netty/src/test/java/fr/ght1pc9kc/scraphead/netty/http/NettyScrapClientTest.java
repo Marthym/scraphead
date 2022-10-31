@@ -16,6 +16,7 @@ import org.mockserver.matchers.Times;
 import org.mockserver.model.Header;
 import org.mockserver.model.MediaType;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.io.IOException;
@@ -87,14 +88,13 @@ class NettyScrapClientTest {
     void should_send_request() {
         Integer port = mockServer.getLocalPort();
 
-        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
+        Mono<ByteBuffer> actual = tested.send(new ScrapRequest(
                         URI.create("http://localhost:" + port + "/og-head-test.html"),
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMapMany(ScrapResponse::body);
+                .flatMap(sr -> sr.body().last());
 
         StepVerifier.create(actual)
-                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
-                        .endsWith("<link rel=\"stylesheet\" href=\"https://blog.i-run.si/css/bundle.min.css\">\n"))
+                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8).toLowerCase().contains("</head>"))
                 .verifyComplete();
     }
 
@@ -102,14 +102,13 @@ class NettyScrapClientTest {
     void should_send_request_with_no_head() {
         Integer port = mockServer.getLocalPort();
 
-        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
+        Mono<ByteBuffer> actual = tested.send(new ScrapRequest(
                         URI.create("http://localhost:" + port + "/og-nohead-test.html"),
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMapMany(ScrapResponse::body);
+                .flatMap(sr -> sr.body().last());
 
         StepVerifier.create(actual)
-                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8)
-                        .endsWith("<link rel=\"stylesheet\" href=\"https://blog.i-run.si/css/bundle.min.css\">\n\n"))
+                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8).toLowerCase().contains("<body>"))
                 .verifyComplete();
     }
 
