@@ -32,6 +32,8 @@ public final class HeadScraperImpl implements HeadScraper {
     public static final String STACKTRACE_DEBUG_MESSAGE = "STACKTRACE";
 
     private static final String HEAD_END_TAG = "</head>";
+    private static final String BODY_START_TAG = "<body>";
+    private static final int MAX_HEAD_SIZE = 600_000;
     private static final Pattern CHARSET_EXTRACT = Pattern.compile("<meta.*?charset=[\"']?([^\"']+)");
 
     private final ScrapClient http;
@@ -69,7 +71,9 @@ public final class HeadScraperImpl implements HeadScraper {
                                     String newContent = new String(buff.array(), responseCharset.get());
                                     return sb.append(newContent);
                                 })
-                                .takeUntil(sb -> sb.indexOf(HEAD_END_TAG) >= 0)
+                                .takeUntil(sb -> sb.length() >= MAX_HEAD_SIZE
+                                        || sb.indexOf(HEAD_END_TAG) >= 0
+                                        || sb.indexOf(BODY_START_TAG) >= 0)
                                 .last();
 
                     })
