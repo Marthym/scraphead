@@ -9,14 +9,6 @@
 
     <artifactId>scraphead-core</artifactId>
 
-    <properties>
-        <surefire.argline.opens>
-            --add-opens scraphead.core/fr.ght1pc9kc.scraphead.core=ALL-UNNAMED
-            --add-opens scraphead.core/fr.ght1pc9kc.scraphead.core.scrap=ALL-UNNAMED
-            --add-opens scraphead.core/fr.ght1pc9kc.scraphead.core.scrap.collectors=ALL-UNNAMED
-        </surefire.argline.opens>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>

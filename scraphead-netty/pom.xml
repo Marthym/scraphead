@@ -9,13 +9,6 @@
 
     <artifactId>scraphead-netty</artifactId>
 
-    <properties>
-        <surefire.argline.opens>
-            --add-opens java.base/sun.security.x509=ALL-UNNAMED
-            --add-opens java.base/sun.security.util=ALL-UNNAMED
-        </surefire.argline.opens>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>fr.ght1pc9kc</groupId>

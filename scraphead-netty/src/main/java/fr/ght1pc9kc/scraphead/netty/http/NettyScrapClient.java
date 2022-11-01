@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Netty Reactor implementation for {@link ScrapClient}.
@@ -36,8 +34,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 public class NettyScrapClient implements ScrapClient {
     private static final int MAX_FRAME_LENGTH = 600_000;
-    private static final String HEAD_DELIMITER = "</head>";
-    private static final String BODY_DELIMITER = "<body";
 
     private final HttpClient http;
 
@@ -51,9 +47,6 @@ public class NettyScrapClient implements ScrapClient {
         for (HttpCookie cookie : request.cookies()) {
             config.cookie(new DefaultCookie(cookie.getName(), cookie.getValue()));
         }
-        AtomicReference<String> lastBuff = new AtomicReference<>("");
-        StringBuilder bldr = new StringBuilder(MAX_FRAME_LENGTH * 2);
-        AtomicInteger totalSize = new AtomicInteger(0);
 
         Sinks.One<ScrapResponse> sink = Sinks.one();
         Sinks.Many<ByteBuffer> body = Sinks.many().unicast().onBackpressureBuffer();
@@ -80,16 +73,6 @@ public class NettyScrapClient implements ScrapClient {
                     }
 
                     return content.asByteArray();
-
-                }).takeUntil(buff -> {
-                    String strBuff = new String(buff).toLowerCase();
-                    String twoBuff = bldr.append(lastBuff.get())
-                            .append(strBuff)
-                            .toString();
-                    bldr.setLength(0);
-                    lastBuff.set(strBuff);
-                    int buffLength = totalSize.getAndAdd(strBuff.length());
-                    return buffLength > MAX_FRAME_LENGTH || twoBuff.contains(HEAD_DELIMITER) || twoBuff.contains(BODY_DELIMITER);
 
                 }).map(ByteBuffer::wrap)
                 .doOnNext(body::tryEmitNext)

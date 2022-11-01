@@ -85,34 +85,6 @@ class NettyScrapClientTest {
     }
 
     @Test
-    void should_send_request() {
-        Integer port = mockServer.getLocalPort();
-
-        Mono<ByteBuffer> actual = tested.send(new ScrapRequest(
-                        URI.create("http://localhost:" + port + "/og-head-test.html"),
-                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMap(sr -> sr.body().last());
-
-        StepVerifier.create(actual)
-                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8).toLowerCase().contains("</head>"))
-                .verifyComplete();
-    }
-
-    @Test
-    void should_send_request_with_no_head() {
-        Integer port = mockServer.getLocalPort();
-
-        Mono<ByteBuffer> actual = tested.send(new ScrapRequest(
-                        URI.create("http://localhost:" + port + "/og-nohead-test.html"),
-                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
-                .flatMap(sr -> sr.body().last());
-
-        StepVerifier.create(actual)
-                .expectNextMatches(bb -> new String(bb.array(), StandardCharsets.UTF_8).toLowerCase().contains("<body>"))
-                .verifyComplete();
-    }
-
-    @Test
     void should_send_request_for_non_html() {
         Integer port = mockServer.getLocalPort();
 
