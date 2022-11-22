@@ -151,6 +151,16 @@ class HeadScraperTest {
         );
     }
 
+    @Test
+    void should_parse_with_title_out_of_head() {
+        URI page = URI.create("https://blog.ght1pc9kc.fr/title-out-of-head.html");
+        String actual = tested.scrap(page).map(Metas::title).block();
+
+        Assertions.assertThat(actual)
+                .isNotNull()
+                .isEqualTo("Observability with Spring Boot 3");
+    }
+
     @ParameterizedTest
     @CsvSource({
             "https://blog.ght1pc9kc.fr/no-encoding-file.html",
