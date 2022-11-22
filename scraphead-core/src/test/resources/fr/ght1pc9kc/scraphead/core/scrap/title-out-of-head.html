@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+
+    <meta content='c88806c0-12ae-417c-9ecb-e4b06b8037d8' name='onetrust-data-domain'>
+    <meta content='https://tags.tiqcdn.com/utag/vmware/microsites-privacy/prod/utag.js' name='microsites-utag'>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src='//www.vmware.com/files/templates/inc/utag_data.js'></script>
+    <script src='//tags.tiqcdn.com/utag/vmware/microsites-privacy/prod/utag.sync.js'></script>
+    <script>function OptanonWrapper() { { window.dataLayer.push({ event: 'OneTrustGroupsUpdated' }); } }</script>
+    <script>
+        function setGTM(w,d,s,l,i){ w[l]=w[l]||[]; w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'}); var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:''; j.async=true; j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); }
+        if (document.cookie.indexOf('OptanonConsent') > -1 && document.cookie.indexOf('groups=') > -1) { setGTM(window,document,'script','dataLayer','GTM-W8CQ8TL'); } else{ waitForOnetrustActiveGroups(); } var timer; function waitForOnetrustActiveGroups() { if (document.cookie.indexOf('OptanonConsent') > -1 && document.cookie.indexOf('groups=') > -1) { clearTimeout(timer); setGTM(window,document,'script','dataLayer','GTM-W8CQ8TL'); } else{ timer=setTimeout(waitForOnetrustActiveGroups, 250); } }
+    </script>
+
+    <meta content='width=device-width,initial-scale=1,shrink-to-fit=no' id='Viewport' name='viewport'>
+    <link rel="stylesheet" type="text/css" media="all" href="/css/main-771faf214fe8f0569d14449c19ec738e.css" />
+    <link href="/images/favicon-9d25009f65637a49ac8d91eb1cf7b75e.ico" rel='shortcut icon' type='image/vnd.microsoft.icon'>
+    <meta name='description' content='Level up your Java code and explore what Spring can do for you.' />
+    <link rel="manifest" href="/manifest-0e3065c2bbd1ef7a320e80861393f1a6.json">
+    <meta name="theme-color" content="#6db33f">
+    <meta name="apple-mobile-web-app-title" content="spring">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Observability with Spring Boot 3</title>
+    <link rel="stylesheet" type="text/css" href="/css/blog-0dacb2985d2cf45dc7891d1671bc5833.css" />
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@springcentral">
+    <meta name="twitter:title" content="Observability with Spring Boot 3">
+    <meta name="twitter:description" content="&lt;div class=&quot;paragraph&quot;&gt;
+ &lt;p&gt;The Spring Observability Team has been working on adding observability support for Spring Applications for quite some time, and we are pleased to inform you that this feature will be generally available with Spring Framework 6 and Spring Boot 3!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+ &lt;p&gt;What is observability? In our understanding, it is &lt;em&gt;&quot;how well you can understand the internals of your system by examining its outputs&quot;&lt;/em&gt;. We believe that the interconnection between metrics, logging, and distributed tracing gives you the ability to reason about the state of your system in order to debug exceptions and latency in your applications. You can watch more about what we think observability is in &lt;a href=&quot;https://tanzu.vmware.com/developer/tv/enlightning/10/&quot;&gt;this episode of Enlightning with Jonatan Ivanov&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+">
+    <meta name="twitter:creator" content="@mgrzejszczak">
+    <meta name="twitter:image:src" content="https://avatars.githubusercontent.com/u/3297437?v=4?s=200">
+
+    <meta property="og:title" content="Observability with Spring Boot 3">
+    <meta property="og:image" content="https://avatars.githubusercontent.com/u/3297437?v=4?s=200">
+    <meta property="og:description" content="&lt;div class=&quot;paragraph&quot;&gt;
+ &lt;p&gt;The Spring Observability Team has been working on adding observability support for Spring Applications for quite some time, and we are pleased to inform you that this feature will be generally available with Spring Framework 6 and Spring Boot 3!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+ &lt;p&gt;What is observability? In our understanding, it is &lt;em&gt;&quot;how well you can understand the internals of your system by examining its outputs&quot;&lt;/em&gt;. We believe that the interconnection between metrics, logging, and distributed tracing gives you the ability to reason about the state of your system in order to debug exceptions and latency in your applications. You can watch more about what we think observability is in &lt;a href=&quot;https://tanzu.vmware.com/developer/tv/enlightning/10/&quot;&gt;this episode of Enlightning with Jonatan Ivanov&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+">
+    <meta property="og:type" content="article">
+    <meta property="og:article:published_time" content="2022-10-12 14:00:00.0">
+    <script src="/js/run_prettify-b8b4abd61389be25d5219fffabfab796.js"></script>
+</head>
+<body id="blog">
+<script src="/js/theme-f367e6936a70ad2e6b3dcb91c6673a9f.js"></script>
+<a href="https://springone.io/?utm_source=spring-io-home" id="global-banner" target="_blank">
+    <div class="container">
+        Hear from the Spring team this January at SpringOne. >
+    </div>
+</a>
+<header>
+    <nav id='nav'>
+        <div id='nav-inner' class='container flex jc-between ai-center'>
+            <a id='logo-focus' tabindex='1' href='/'>
+                <img id='springlogo' class='block' src="/images/spring-logo-2022-93b99aee11ba10c57283810ff6f7f500.svg" alt="Spring">
+                <img id='springlogo-dark' class='block' src="/images/spring-logo-2022-dark-2f10e8055653ec50e693eb444291d742.svg" alt="Spring">
+            </a>
+            <ul id='nav-items' class='flex jc-between'>
+                <li><div class='has-menu' id='why-hov'><span tabindex='2'>Why Spring</span><div class='nav-arrow'></div></div></li>
+                <li><div class='has-menu' id='learn-hov'><span tabindex='11'>Learn</span><div class='nav-arrow'></div></div></li>
+                <li><div class='has-menu' id='projects-hov'><span tabindex='17'>Projects</span><div class='nav-arrow'></div></div></li>
+                <li><a class='z-5 rel' href='/training' tabindex='30'>Training</a></li>
+                <li><a class='z-5 rel' href='/support' tabindex='31'>Support</a></li>
+                <li><a class='has-menu' id='community-hov'><span tabindex='32'>Community</span><div class='nav-arrow'></div></a></li>
+                <li>
+                    <a id="switch-theme" class="theme-switch">
+<span>
+<i class="fas fa-moon"></i>
+<i class="fas fa-sun"></i>
+</span>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+        <div id='dropdown-menus' class='container rel'>
+            <div id='scope' class='abs rad-5'></div>
+            <div id='why-items' class='drop-menu'>
+                <div id='why-target' class='drop-target'></div>
+                <ul>
+                    <li><a tabindex='3' href='/why-spring'>Overview</a></li>
+                    <li><a tabindex='4' href='/microservices'>Microservices</a></li>
+                    <li><a tabindex='5' href='/reactive'>Reactive</a></li>
+                    <li><a tabindex='6' href='/event-driven'>Event Driven</a></li>
+                    <li><a tabindex='7' href='/cloud'>Cloud</a></li>
+                    <li><a tabindex='8' href='/web-applications'>Web Applications</a></li>
+                    <li><a tabindex='9' href='/serverless'>Serverless</a></li>
+                    <li><a tabindex='10' href='/batch'>Batch</a></li>
+                </ul>
+            </div>
+            <div id='learn-items' class='drop-menu'>
+                <div id='learn-target' class='drop-target'></div>
+                <ul>
+                    <li><a tabindex='12' href='/learn'>Overview</a></li>
+                    <li><a tabindex='13' href='/quickstart'>Quickstart</a></li>
+                    <li><a tabindex='14' href='/guides'>Guides</a></li>
+
+                    <li><a tabindex='16' href='/blog'>Blog</a></li>
+                </ul>
+            </div>
+            <div id='project-items' class='drop-menu'>
+                <div id='project-target' class='drop-target'></div>
+                <ul>
+                    <li><a tabindex='18' href='/projects'>Overview</a></li>
+                    <li><a tabindex='19' href='/projects/spring-boot'>Spring Boot</a></li>
+                    <li><a tabindex='20' href='/projects/spring-framework'>Spring Framework</a></li>
+                    <li><a tabindex='21' href='/projects/spring-cloud'>Spring Cloud</a></li>
+                    <li><a tabindex='22' href='/projects/spring-cloud-dataflow'>Spring Cloud Data Flow</a></li>
+                    <li><a tabindex='23' href='/projects/spring-data'>Spring Data</a></li>
+                    <li><a tabindex='24' href='/projects/spring-integration'>Spring Integration</a></li>
+                    <li><a tabindex='25' href='/projects/spring-batch'>Spring Batch</a></li>
+                    <li><a tabindex='26' href='/projects/spring-security'>Spring Security</a></li>
+                    <li><a tabindex='27' class='blue mb-2 inline-block' href='/projects'>View all projects</a></li>
+                    <li class='uppercase smallest'>Development Tools</li>
+                    <li><a tabindex='28' href='/tools'>Spring Tools 4</a></li>
+                    <li><a tabindex='29' href='https://start.spring.io'>Spring Initializr <svg class='external-link-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><polyline points="15 10.94 15 15 1 15 1 1 5.06 1" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" /><polyline points="8.93 1 15 1 15 7.07" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" /><line x1="15" y1="1" x2="8" y2="8" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" /></svg></a></li>
+                </ul>
+            </div>
+            <div id='community-items' class='drop-menu'>
+                <div id='community-target' class='drop-target'></div>
+                <ul>
+                    <li><a tabindex='33' href='/community'>Overview</a></li>
+                    <li><a tabindex='34' href='/events'>Events</a></li>
+                    <li><a tabindex='35' href='/team'>Team</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div id='mobile-nav-open' class='pointer'>
+        <div id="hamburger">
+            <div class="burger-bar"></div>
+            <div class="burger-bar"></div>
+            <div class="burger-bar"></div>
+        </div>
+        <svg version="1.1" class='mobile-close pointer' id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 14.6 14.6" style="enable-background:new 0 0 14.6 14.6;" xml:space="preserve"><style type="text/css">.st0{fill:none;stroke:#000000;stroke-widdata-th-3;stroke-miterlimit:10;}</style><title>close</title><line class="st0" x1="1.5" y1="1.5" x2="13.1" y2="13.1" /><line class="st0" x1="13.1" y1="1.5" x2="1.5" y2="13.1" /></svg>
+    </div>
+    <nav id='mobile-nav' class='border-box rel'>
+        <div class='rel'>
+            <div id='mobile-why' class='mobile-category flex jc-between ai-center'>
+                <div class='mobile-title antialiased cursor-d'>Why Spring</div>
+                <div class="mobile-nav-arrow"></div>
+            </div>
+            <div id='mobile-why-items' class='mobile-expanded-category'>
+                <ul>
+                    <li><a href='/why-spring'>Overview</a></li>
+                    <li><a href='/microservices'>Microservices</a></li>
+                    <li><a href='/reactive'>Reactive</a></li>
+                    <li><a href='/event-driven'>Event Driven</a></li>
+                    <li><a href='/cloud'>Cloud</a></li>
+                    <li><a href='/web-applications'>Web Applications</a></li>
+                    <li><a href='/serverless'>Serverless</a></li>
+                    <li><a href='/batch'>Batch</a></li>
+                </ul>
+            </div>
+            <div id='mobile-learn' class='mobile-category flex jc-between ai-center'>
+                <div class='mobile-title antialiased cursor-d'>Learn</div>
+                <div class="mobile-nav-arrow"></div>
+            </div>
+            <div id='mobile-learn-items' class='mobile-expanded-category'>
+                <ul>
+                    <li><a href='/learn'>Overview</a></li>
+                    <li><a href='/quickstart'>Quickstart</a></li>
+                    <li><a href='/guides'>Guides</a></li>
+
+                    <li><a href='/blog'>Blog</a></li>
+                </ul>
+            </div>
+            <div id='mobile-projects' class='mobile-category flex jc-between ai-center'>
+                <div class='mobile-title antialiased cursor-d'>Projects</div>
+                <div class="mobile-nav-arrow"></div>
+            </div>
+            <div id='mobile-project-items' class='mobile-expanded-category'>
+                <ul>
+                    <li><a href='/projects'>Overview</a></li>
+                    <li><a href='/projects/spring-boot'>Spring Boot</a></li>
+                    <li><a href='/projects/spring-framework'>Spring Framework</a></li>
+                    <li><a href='/projects/spring-cloud'>Spring Cloud</a></li>
+                    <li><a href='/projects/spring-cloud-dataflow'>Spring Cloud Data Flow</a></li>
+                    <li><a href='/projects/spring-data'>Spring Data</a></li>
+                    <li><a href='/projects/spring-integration'>Spring Integration</a></li>
+                    <li><a href='/projects/spring-batch'>Spring Batch</a></li>
+                    <li><a href='/projects/spring-security'>Spring Security</a></li>
+                    <li><a class='blue mb-2 inline-block' href='/projects'>View all projects</a></li>
+                    <p class='uppercase smallest white'>Development Tools</p>
+                    <li><a href='/tools'>Spring Tools 4</a></li>
+                    <li><a href='https://start.spring.io'>Spring Initializr <svg class='external-link-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><polyline points="15 10.94 15 15 1 15 1 1 5.06 1" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" /><polyline points="8.93 1 15 1 15 7.07" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" /><line x1="15" y1="1" x2="8" y2="8" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" /></svg></a></li>
+                </ul>
+            </div>
+            <a href='/training' class='mobile-link block'><div class='mobile-title antialiased'>Training</div></a>
+            <a href='/support' class='mobile-link block'><div class='mobile-title antialiased'>Support</div></a>
+            <div id='mobile-community' class='mobile-category flex jc-between ai-center'>
+                <div class='mobile-title antialiased cursor-d'>Community</div>
+                <div class="mobile-nav-arrow"></div>
+            </div>
+            <div id='mobile-community-items' class='mobile-expanded-category'>
+                <ul>
+                    <li><a href='/community'>Overview</a></li>
+                    <li><a href='/events'>Events</a></li>
+                    <li><a href='/team'>Team</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+    <div id="search
