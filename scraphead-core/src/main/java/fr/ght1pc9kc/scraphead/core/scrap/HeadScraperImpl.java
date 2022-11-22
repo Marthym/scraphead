@@ -32,7 +32,7 @@ public final class HeadScraperImpl implements HeadScraper {
     public static final String STACKTRACE_DEBUG_MESSAGE = "STACKTRACE";
 
     private static final String HEAD_END_TAG = "</head>";
-    private static final String BODY_START_TAG = "<body>";
+    private static final String BODY_START_TAG = "<body";
     private static final int MAX_HEAD_SIZE = 600_000;
     private static final Pattern CHARSET_EXTRACT = Pattern.compile("<meta.*?charset=[\"']?([^\"']+)");
 
@@ -80,6 +80,14 @@ public final class HeadScraperImpl implements HeadScraper {
                     .map(StringBuilder::toString)
                     .doFirst(() -> log.trace("Receiving data from {}...", request.location()))
 
+                    .map(html -> {
+                        int idxHead = html.indexOf(HEAD_END_TAG);
+                        if (idxHead > 0) {
+                            return html.substring(0, Math.max(idxHead, idxHead + HEAD_END_TAG.length()));
+                        }
+                        int idxBody = html.indexOf(BODY_START_TAG);
+                        return (idxBody > 0) ? html.substring(0, idxBody) : html;
+                    })
                     .map(html -> Jsoup.parseBodyFragment(html, request.location().toString()))
                     .map(ogReader::read)
 
