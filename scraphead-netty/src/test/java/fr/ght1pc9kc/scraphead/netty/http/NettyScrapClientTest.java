@@ -6,7 +6,6 @@ import fr.ght1pc9kc.scraphead.netty.http.config.NettyClientBuilder;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,16 +16,12 @@ import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -71,15 +66,6 @@ class NettyScrapClientTest {
                         )
                 ).bindNow();
         log.debug("Server started on {} !", mockServer.port());
-    }
-
-    private static String getBodyFromResource(String file) {
-        try (InputStream ras = NettyScrapClientTest.class.getClassLoader().getResourceAsStream(file)) {
-            return new String(Objects.requireNonNull(ras).readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            Assertions.fail("Unable to get resource", e);
-            throw new RuntimeException(e);
-        }
     }
 
     @BeforeEach
