@@ -3,6 +3,7 @@ package fr.ght1pc9kc.scraphead.netty.http;
 import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
 import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
 import fr.ght1pc9kc.scraphead.netty.http.config.NettyClientBuilder;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.extern.slf4j.Slf4j;
@@ -48,21 +49,14 @@ class NettyScrapClientTest {
                                         .addHeader(HttpHeaderNames.CONTENT_TYPE, "audio/mpeg3")
                                         .addHeader(HttpHeaderNames.CONTENT_LENGTH, "1200001")
                                         .chunkedTransfer(true)
-                                        .send(Flux.create(sink -> {
-                                            Random random = new Random();
-                                            AtomicInteger totalSize = new AtomicInteger(0);
-                                            sink.onRequest(n -> {
-                                                int give = 0;
-                                                while (totalSize.get() < 1_200_001 && give++ >= n) {
-                                                    byte[] buff = new byte[1024];
-                                                    random.nextBytes(buff);
-                                                    totalSize.accumulateAndGet(buff.length, Integer::sum);
-                                                }
-                                                if (totalSize.get() < 1_200_001) {
-                                                    sink.complete();
-                                                }
-                                            });
-                                        }))
+                                        .send(generateHeavyPayload(1_200_001))
+
+                        )
+                        .get("/massively-heavy.html", (request, response) ->
+                                response.status(200)
+                                        .addHeader(HttpHeaderNames.CONTENT_LENGTH, "1200001")
+                                        .chunkedTransfer(true)
+                                        .send(generateHeavyPayload(1_200_001))
                         )
                 ).bindNow();
         log.debug("Server started on {} !", mockServer.port());
@@ -90,6 +84,18 @@ class NettyScrapClientTest {
         int port = mockServer.port();
 
         Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
+                        URI.create("http://localhost:" + port + "/massively-heavy.html"),
+                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
+                .flatMapMany(ScrapResponse::body);
+
+        StepVerifier.create(actual).verifyComplete();
+    }
+
+    @Test
+    void should_send_request_for_non_html_payload() {
+        int port = mockServer.port();
+
+        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
                         URI.create("http://localhost:" + port + "/the-cantina-band.mp3"),
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
                 .flatMapMany(ScrapResponse::body);
@@ -100,5 +106,23 @@ class NettyScrapClientTest {
     @AfterAll
     static void tearDown() {
         mockServer.disposeNow(Duration.ofSeconds(2));
+    }
+
+    private static Flux<ByteBuf> generateHeavyPayload(int size) {
+        return Flux.create(sink -> {
+            Random random = new Random();
+            AtomicInteger totalSize = new AtomicInteger(0);
+            sink.onRequest(n -> {
+                int give = 0;
+                while (totalSize.get() < size && give++ >= n) {
+                    byte[] buff = new byte[1024];
+                    random.nextBytes(buff);
+                    totalSize.accumulateAndGet(buff.length, Integer::sum);
+                }
+                if (totalSize.get() < size) {
+                    sink.complete();
+                }
+            });
+        });
     }
 }
