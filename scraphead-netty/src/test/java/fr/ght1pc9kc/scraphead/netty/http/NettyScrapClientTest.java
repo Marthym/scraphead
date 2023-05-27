@@ -3,80 +3,63 @@ package fr.ght1pc9kc.scraphead.netty.http;
 import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
 import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
 import fr.ght1pc9kc.scraphead.netty.http.config.NettyClientBuilder;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.Assertions;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.configuration.ConfigurationProperties;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.matchers.Times;
-import org.mockserver.model.Header;
-import org.mockserver.model.MediaType;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.DisposableServer;
+import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-
+@Slf4j
 class NettyScrapClientTest {
-    private static ClientAndServer mockServer;
-
+    private static DisposableServer mockServer;
     private NettyScrapClient tested;
 
     @BeforeAll
     static void setUpAll() {
-        ConfigurationProperties.logLevel("WARN");
-        mockServer = ClientAndServer.startClientAndServer();
-        mockServer.when(request()
-                        .withMethod("GET")
-                        .withPath("/og-head-test.html"), Times.exactly(1))
-                .respond(response()
-                        .withStatusCode(200)
-                        .withBody(getBodyFromResource("og-head-test.html")));
-        mockServer.when(request()
-                        .withMethod("GET")
-                        .withPath("/og-nohead-test.html"), Times.exactly(1))
-                .respond(response()
-                        .withStatusCode(200)
-                        .withBody(getBodyFromResource("og-nohead-test.html")));
-        mockServer.when(request()
-                        .withMethod("GET")
-                        .withPath("/test.json"), Times.exactly(1))
-                .respond(response()
-                        .withStatusCode(200)
-                        .withContentType(MediaType.APPLICATION_JSON_UTF_8)
-                        .withBody("FAIL"));
-        mockServer.when(request()
-                        .withMethod("GET")
-                        .withPath("/the-cantina-band.mp3"), Times.exactly(1))
-                .respond(response()
-                        .withStatusCode(200)
-                        .withHeaders(
-                                new Header(HttpHeaderNames.CONTENT_LENGTH.toString(), "1200001"))
-                        .withBody(""));
-    }
+        log.info("Start Server ...");
+        mockServer = HttpServer.create()
+                .host("localhost")
+                .wiretap(true)
+                .accessLog(log.isDebugEnabled())
+                .route(routes -> routes
+                        .get("/test.json", (request, response) ->
+                                response.status(200)
+                                        .addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
+                                        .sendString(Mono.just("{status: \"FAIL\"}"))
+                        )
+                        .get("/the-cantina-band.mp3", (request, response) ->
+                                response.status(200)
+                                        .addHeader(HttpHeaderNames.CONTENT_TYPE, "audio/mpeg3")
+                                        .addHeader(HttpHeaderNames.CONTENT_LENGTH, "1200001")
+                                        .chunkedTransfer(true)
+                                        .send(generateHeavyPayload(1_200_001))
 
-    private static String getBodyFromResource(String file) {
-        try (InputStream ras = NettyScrapClientTest.class.getClassLoader().getResourceAsStream(file)) {
-            return IOUtils.toString(Objects.requireNonNull(ras), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            Assertions.fail("Unable to get resource", e);
-            throw new RuntimeException(e);
-        }
+                        )
+                        .get("/massively-heavy.html", (request, response) ->
+                                response.status(200)
+                                        .addHeader(HttpHeaderNames.CONTENT_LENGTH, "1200001")
+                                        .chunkedTransfer(true)
+                                        .send(generateHeavyPayload(1_200_001))
+                        )
+                ).bindNow();
+        log.debug("Server started on {} !", mockServer.port());
     }
 
     @BeforeEach
@@ -86,10 +69,10 @@ class NettyScrapClientTest {
 
     @Test
     void should_send_request_for_non_html() {
-        Integer port = mockServer.getLocalPort();
+        int port = mockServer.port();
 
         Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
-                        URI.create("http://localhost:" + port + "/test.json"),
+                        URI.create("http://" + mockServer.host() + ":" + port + "/test.json"),
                         HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
                 .flatMapMany(ScrapResponse::body);
 
@@ -98,7 +81,19 @@ class NettyScrapClientTest {
 
     @Test
     void should_send_request_for_heavy_payload() {
-        Integer port = mockServer.getLocalPort();
+        int port = mockServer.port();
+
+        Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
+                        URI.create("http://localhost:" + port + "/massively-heavy.html"),
+                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
+                .flatMapMany(ScrapResponse::body);
+
+        StepVerifier.create(actual).verifyComplete();
+    }
+
+    @Test
+    void should_send_request_for_non_html_payload() {
+        int port = mockServer.port();
 
         Flux<ByteBuffer> actual = tested.send(new ScrapRequest(
                         URI.create("http://localhost:" + port + "/the-cantina-band.mp3"),
@@ -110,6 +105,24 @@ class NettyScrapClientTest {
 
     @AfterAll
     static void tearDown() {
-        mockServer.stop();
+        mockServer.disposeNow(Duration.ofSeconds(2));
+    }
+
+    private static Flux<ByteBuf> generateHeavyPayload(int size) {
+        return Flux.create(sink -> {
+            Random random = new Random();
+            AtomicInteger totalSize = new AtomicInteger(0);
+            sink.onRequest(n -> {
+                int give = 0;
+                while (totalSize.get() < size && give++ >= n) {
+                    byte[] buff = new byte[1024];
+                    random.nextBytes(buff);
+                    totalSize.accumulateAndGet(buff.length, Integer::sum);
+                }
+                if (totalSize.get() < size) {
+                    sink.complete();
+                }
+            });
+        });
     }
 }

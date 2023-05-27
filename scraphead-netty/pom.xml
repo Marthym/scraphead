@@ -4,7 +4,7 @@
     <parent>
         <artifactId>scraphead</artifactId>
         <groupId>fr.ght1pc9kc</groupId>
-        <version>1.3.3</version>
+        <version>1.3.4</version>
     </parent>
 
     <artifactId>scraphead-netty</artifactId>
@@ -56,11 +56,6 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mock-server</groupId>
-            <artifactId>mockserver-netty</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
