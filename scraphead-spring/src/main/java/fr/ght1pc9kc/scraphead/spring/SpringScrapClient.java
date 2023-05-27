@@ -47,7 +47,7 @@ public class SpringScrapClient implements ScrapClient {
                     MediaType contentType = extractContentType(response.headers()).orElse(null);
                     if (!response.statusCode().is2xxSuccessful()) {
                         return Flux.error(() ->
-                                new InvalidStatusCodeException("Receive not successful status code " + response.rawStatusCode()));
+                                new InvalidStatusCodeException("Receive not successful status code " + response.statusCode().value()));
                     }
                     if (contentType != null && !contentType.isCompatibleWith(MediaType.TEXT_HTML)) {
                         return Flux.error(() -> new UnsupportedContentTypeException("Content type " + contentType + "was not supported !"));
