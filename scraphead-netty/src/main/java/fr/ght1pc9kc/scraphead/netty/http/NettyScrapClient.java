@@ -63,7 +63,7 @@ public class NettyScrapClient implements ScrapClient {
                     URI resourceUrl = Optional.ofNullable(res.resourceUrl())
                             .map(u -> new String(u.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8))
                             .map(URI::create).orElse(request.location());
-                    log.debug(request.location() + " --> " + resourceUrl);
+
                     sink.tryEmitValue(new ScrapResponse(res.status().code(), resourceUrl, HttpHeaders.of(headers, (k, v) -> true), body.asFlux()));
                     String contentType = res.responseHeaders().get(HttpHeaderNames.CONTENT_TYPE);
                     if (contentType != null && !contentType.contains(HttpHeaderValues.TEXT_HTML)) {

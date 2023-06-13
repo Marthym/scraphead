@@ -87,8 +87,10 @@ public final class HeadScraperImpl implements HeadScraper {
                                     int idxBody = html.indexOf(BODY_START_TAG);
                                     return (idxBody > 0) ? html.substring(0, idxBody) : html;
                                 })
-                                .map(html -> Jsoup.parseBodyFragment(html, request.location().toString()))
-                                .map(doc -> Tuples.of(doc, response.resourceUrl()));
+                                .map(html -> Tuples.of(
+                                        Jsoup.parseBodyFragment(html, request.location().toString()),
+                                        response.resourceUrl()
+                                ));
 
                     })
                     .map(tDoc -> ogReader.read(tDoc.getT2(), tDoc.getT1()))
