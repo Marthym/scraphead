@@ -7,6 +7,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +59,17 @@ class NettyScrapClientTest {
                                         .chunkedTransfer(true)
                                         .send(generateHeavyPayload(1_200_001))
                         )
+                        .get("/check-permanent-redirection.html", (request, response) ->
+                                response.status(308)
+                                        .addHeader(HttpHeaderNames.LOCATION, "/check-permanent-redirection")
+                                        .addHeader(HttpHeaderNames.CONTENT_LENGTH, "0")
+                                        .sendString(Mono.empty())
+                        )
+                        .get("/check-permanent-redirection", (request, response) ->
+                                response.status(200)
+                                        .addHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
+                                        .sendString(Mono.just("<html><head><title>tset</title></head<body>test</body></html>"))
+                        )
                 ).bindNow();
         log.debug("Server started on {} !", mockServer.port());
     }
@@ -77,6 +89,21 @@ class NettyScrapClientTest {
                 .flatMapMany(ScrapResponse::body);
 
         StepVerifier.create(actual).verifyComplete();
+    }
+
+    @Test
+    void should_return_redirected_url() {
+        int port = mockServer.port();
+
+        Mono<URI> actual = tested.send(new ScrapRequest(
+                        URI.create("http://" + mockServer.host() + ":" + port + "/check-permanent-redirection.html"),
+                        HttpHeaders.of(Map.of(), (l, r) -> true), List.of()))
+                .map(ScrapResponse::resourceUrl);
+
+        StepVerifier.create(actual)
+                .assertNext(u -> Assertions.assertThat(u)
+                        .isEqualTo(URI.create("http://" + mockServer.host() + ":" + port + "/check-permanent-redirection")))
+                .verifyComplete();
     }
 
     @Test

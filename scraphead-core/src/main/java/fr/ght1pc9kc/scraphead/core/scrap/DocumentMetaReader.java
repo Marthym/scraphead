@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.NodeFilter;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
@@ -17,15 +18,15 @@ import java.util.Set;
 public final class DocumentMetaReader {
     private static final Set<String> ALLOWED_NODE_NAME = Set.of(
             "#document", "#text", "html", "head", "body", "title", "style", "base", "link", "meta", "script", "noscript");
-    private static final Metas EMPTY = Metas.builder().build();
     private final List<MetaDataCollector> collectors;
 
-    public Metas read(Document headDoc) {
+    public Metas read(URI resourceUrl, Document headDoc) {
         if (collectors.isEmpty()) {
-            return EMPTY;
+            return Metas.builder().resourceUrl(resourceUrl).build();
         }
 
-        Metas.MetasBuilder mBuilder = Metas.builder();
+        Metas.MetasBuilder mBuilder = Metas.builder()
+                .resourceUrl(resourceUrl);
         for (MetaDataCollector collector : collectors) {
             Object meta = headDoc
                     .filter((node, depth) -> (ALLOWED_NODE_NAME.contains(node.nodeName())

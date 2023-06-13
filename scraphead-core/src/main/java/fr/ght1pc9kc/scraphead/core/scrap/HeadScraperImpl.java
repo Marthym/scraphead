@@ -13,6 +13,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
+import reactor.util.function.Tuples;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -74,22 +75,23 @@ public final class HeadScraperImpl implements HeadScraper {
                                 .takeUntil(sb -> sb.length() >= MAX_HEAD_SIZE
                                         || sb.indexOf(HEAD_END_TAG) >= 0
                                         || sb.indexOf(BODY_START_TAG) >= 0)
-                                .last();
+                                .last()
+                                .map(StringBuilder::toString)
+
+                                .doFirst(() -> log.trace("Receiving data from {}...", request.location()))
+                                .map(html -> {
+                                    int idxHead = html.indexOf(HEAD_END_TAG);
+                                    if (idxHead > 0) {
+                                        return html.substring(0, Math.max(idxHead, idxHead + HEAD_END_TAG.length()));
+                                    }
+                                    int idxBody = html.indexOf(BODY_START_TAG);
+                                    return (idxBody > 0) ? html.substring(0, idxBody) : html;
+                                })
+                                .map(html -> Jsoup.parseBodyFragment(html, request.location().toString()))
+                                .map(doc -> Tuples.of(doc, response.resourceUrl()));
 
                     })
-                    .map(StringBuilder::toString)
-                    .doFirst(() -> log.trace("Receiving data from {}...", request.location()))
-
-                    .map(html -> {
-                        int idxHead = html.indexOf(HEAD_END_TAG);
-                        if (idxHead > 0) {
-                            return html.substring(0, Math.max(idxHead, idxHead + HEAD_END_TAG.length()));
-                        }
-                        int idxBody = html.indexOf(BODY_START_TAG);
-                        return (idxBody > 0) ? html.substring(0, idxBody) : html;
-                    })
-                    .map(html -> Jsoup.parseBodyFragment(html, request.location().toString()))
-                    .map(ogReader::read)
+                    .map(tDoc -> ogReader.read(tDoc.getT2(), tDoc.getT1()))
 
                     .onErrorResume(e -> {
                         log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), request.location());

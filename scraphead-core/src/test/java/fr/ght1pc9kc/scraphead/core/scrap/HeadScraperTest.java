@@ -58,7 +58,7 @@ class HeadScraperTest {
                 byte[] arr = new byte[2048];
                 rd.nextBytes(arr);
                 return Mono.just(
-                        new ScrapResponse(200,
+                        new ScrapResponse(200, request.location(),
                                 HttpHeaders.of(Map.of("content-type", List.of("application/octet-stream")), (l, r) -> true),
                                 Flux.just(ByteBuffer.wrap(arr)))
                 );
@@ -67,12 +67,12 @@ class HeadScraperTest {
             ByteBuffer byteBuffer;
             try (InputStream is = HeadScraperTest.class.getResourceAsStream(request.location().getPath().replaceAll("^/", ""))) {
                 if (is == null) {
-                    return Mono.just(new ScrapResponse(404, null, Flux.empty()));
+                    return Mono.just(new ScrapResponse(404, request.location(), null, Flux.empty()));
                 }
 
                 byteBuffer = ByteBuffer.wrap(is.readAllBytes());
             }
-            return Mono.just(new ScrapResponse(200,
+            return Mono.just(new ScrapResponse(200, request.location(),
                     HttpHeaders.of(Map.of("content-type", List.of("text/html")), (l, r) -> true), Flux.just(byteBuffer)));
         });
         reset(ogReader);
