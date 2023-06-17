@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
 @Slf4j
 @RequiredArgsConstructor
 public final class HeadScraperImpl implements HeadScraper {
-    public static final String WARNING_MESSAGE = "{} on {}";
     public static final String STACKTRACE_DEBUG_MESSAGE = "STACKTRACE";
 
     private static final String HEAD_END_TAG = "</head>";
@@ -96,12 +95,12 @@ public final class HeadScraperImpl implements HeadScraper {
                     .map(tDoc -> ogReader.read(tDoc.getT2(), tDoc.getT1()))
 
                     .onErrorResume(e -> {
-                        log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), request.location());
+                        log.warn("Error during parsing: {} on {}", e.getLocalizedMessage(), request.location());
                         log.debug(STACKTRACE_DEBUG_MESSAGE, e);
                         return Mono.empty();
                     });
         } catch (Exception e) {
-            log.warn(WARNING_MESSAGE, e.getLocalizedMessage(), request.location());
+            log.warn("Error during scraping: {} on {}", e.getLocalizedMessage(), request.location());
             log.debug(STACKTRACE_DEBUG_MESSAGE, e);
             return Mono.empty();
         }
