@@ -14,12 +14,16 @@ import reactor.core.publisher.Sinks;
 import reactor.netty.http.client.HttpClient;
 
 import java.net.HttpCookie;
+import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpHeaders;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Netty Reactor implementation for {@link ScrapClient}.
@@ -56,7 +60,11 @@ public class NettyScrapClient implements ScrapClient {
                     res.responseHeaders().forEach(h ->
                             headers.computeIfAbsent(h.getKey().toLowerCase(), k -> new ArrayList<>()).add(h.getValue()));
 
-                    sink.tryEmitValue(new ScrapResponse(res.status().code(), HttpHeaders.of(headers, (k, v) -> true), body.asFlux()));
+                    URI resourceUrl = Optional.ofNullable(res.resourceUrl())
+                            .map(u -> new String(u.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8))
+                            .map(URI::create).orElse(request.location());
+
+                    sink.tryEmitValue(new ScrapResponse(res.status().code(), resourceUrl, HttpHeaders.of(headers, (k, v) -> true), body.asFlux()));
                     String contentType = res.responseHeaders().get(HttpHeaderNames.CONTENT_TYPE);
                     if (contentType != null && !contentType.contains(HttpHeaderValues.TEXT_HTML)) {
                         log.debug("[{}] {}", res.requestId(), request.location());

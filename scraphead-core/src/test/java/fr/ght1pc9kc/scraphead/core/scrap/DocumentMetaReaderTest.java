@@ -44,8 +44,9 @@ class DocumentMetaReaderTest {
                 new Element("meta")
                         .attr(META_PROPERTY, "og:locale").attr(META_CONTENT, "fr-fr")
         ));
-        Metas actual = tested.read(document);
+        Metas actual = tested.read(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force"), document);
 
+        Assertions.assertThat(actual.resourceUrl()).isEqualTo(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force"));
         Assertions.assertThat(actual.og()).isEqualTo(
                 OpenGraph.builder()
                         .title("Title de OG")
@@ -74,7 +75,7 @@ class DocumentMetaReaderTest {
                 new Element("meta")
                         .attr(META_PROPERTY, "og:locale").attr(META_CONTENT, "fr-fr")
         ));
-        Metas actual = tested.read(document);
+        Metas actual = tested.read(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force"), document);
 
         Assertions.assertThat(actual.og()).isEqualTo(
                 OpenGraph.builder()
@@ -99,7 +100,7 @@ class DocumentMetaReaderTest {
                 new Element(Tag.valueOf("meta"), baseUri)
                         .attr(META_PROPERTY, "og:image").attr(META_CONTENT, imageLink)
         ));
-        OpenGraph actual = tested.read(document).og();
+        OpenGraph actual = tested.read(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force"), document).og();
 
         Assertions.assertThat(actual).isNotNull()
                 .extracting(a -> a.image).isEqualTo(URI.create("http://obiwan.kenobi.jedi/tatooine/featured.jpg"));
@@ -116,7 +117,7 @@ class DocumentMetaReaderTest {
         document.appendChildren(List.of(
                 new Element("meta").attr(META_PROPERTY, tag).attr(META_CONTENT, value)
         ));
-        OpenGraph actual = tested.read(document).og();
+        OpenGraph actual = tested.read(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force"), document).og();
         Assertions.assertThat(actual).isNotNull();
     }
 
@@ -126,7 +127,7 @@ class DocumentMetaReaderTest {
         document.appendChildren(List.of(
                 new Element("meta").attr(META_PROPERTY, "og:locale")
         ));
-        OpenGraph actual = tested.read(document).og();
+        OpenGraph actual = tested.read(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force"), document).og();
         Assertions.assertThat(actual).isNotNull();
     }
 
@@ -136,7 +137,7 @@ class DocumentMetaReaderTest {
         document.appendChildren(List.of(
                 new Element("meta").attr(META_PROPERTY, "og:url")
         ));
-        OpenGraph actual = tested.read(document).og();
+        OpenGraph actual = tested.read(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force"), document).og();
         Assertions.assertThat(actual).isNotNull();
     }
 }

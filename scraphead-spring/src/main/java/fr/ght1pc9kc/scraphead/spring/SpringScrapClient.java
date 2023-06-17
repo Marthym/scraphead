@@ -63,7 +63,7 @@ public class SpringScrapClient implements ScrapClient {
 
                 }).take(1).next()
                 .map(str -> new ScrapResponse(
-                        200,
+                        200, request.location(),
                         HttpHeaders.of(Map.of(), (k, v) -> true),
                         Flux.just(ByteBuffer.wrap(str.getBytes(StandardCharsets.UTF_8)))));
     }

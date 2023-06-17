@@ -67,7 +67,7 @@ public class OGScrapperUtils {
             if (value == null) return StandardCharsets.UTF_8;
             return Charset.forName(value);
         } catch (Exception x) {
-            log.trace("Can't find charset in {} ({})", type, x);
+            log.trace("Can't find charset in {} ({})", type, x.getLocalizedMessage(), x);
             return StandardCharsets.UTF_8;
         }
     }
