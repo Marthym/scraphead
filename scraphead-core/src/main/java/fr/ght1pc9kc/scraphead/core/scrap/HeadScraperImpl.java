@@ -95,12 +95,12 @@ public final class HeadScraperImpl implements HeadScraper {
                     .map(tDoc -> ogReader.read(tDoc.getT2(), tDoc.getT1()))
 
                     .onErrorResume(e -> {
-                        log.warn("Error during parsing: {} on {}", e.getLocalizedMessage(), request.location());
+                        log.warn("Unknown parsing error on flux: {} on {}", e.getLocalizedMessage(), request.location());
                         log.debug(STACKTRACE_DEBUG_MESSAGE, e);
                         return Mono.empty();
                     });
         } catch (Exception e) {
-            log.warn("Error during scraping: {} on {}", e.getLocalizedMessage(), request.location());
+            log.warn("Unknown parsing error on scrap: {} on {}", e.getLocalizedMessage(), request.location());
             log.debug(STACKTRACE_DEBUG_MESSAGE, e);
             return Mono.empty();
         }
