@@ -5,6 +5,8 @@ import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
 import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
 import fr.ght1pc9kc.scraphead.core.http.ScrapRequestBuilder;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
+import fr.ght1pc9kc.scraphead.core.model.ex.HeadScrapingException;
+import fr.ght1pc9kc.scraphead.core.model.ex.NetworkScrapException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +27,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.util.function.Predicate.not;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -86,6 +90,7 @@ public final class HeadScraperImpl implements HeadScraper {
                                     int idxBody = html.indexOf(BODY_START_TAG);
                                     return (idxBody > 0) ? html.substring(0, idxBody) : html;
                                 })
+                                .onErrorMap(e -> new NetworkScrapException("Error during network request", e))
                                 .map(html -> Tuples.of(
                                         Jsoup.parseBodyFragment(html, request.location().toString()),
                                         response.resourceUrl()
@@ -93,16 +98,10 @@ public final class HeadScraperImpl implements HeadScraper {
 
                     })
                     .map(tDoc -> ogReader.read(tDoc.getT2(), tDoc.getT1()))
-
-                    .onErrorResume(e -> {
-                        log.warn("Unknown parsing error on flux: {} on {}", e.getLocalizedMessage(), request.location());
-                        log.debug(STACKTRACE_DEBUG_MESSAGE, e);
-                        return Mono.empty();
-                    });
+                    .onErrorMap(not(NetworkScrapException.class::isInstance),
+                            e -> new NetworkScrapException("Error during network request", e));
         } catch (Exception e) {
-            log.warn("Unknown parsing error on scrap: {} on {}", e.getLocalizedMessage(), request.location());
-            log.debug(STACKTRACE_DEBUG_MESSAGE, e);
-            return Mono.empty();
+            return Mono.error(() -> new HeadScrapingException("Unable to scrap header !", e));
         }
     }
 
