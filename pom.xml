@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.ght1pc9kc</groupId>
     <artifactId>scraphead</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.0</version>
     <packaging>pom</packaging>
 
     <name>Scraphead</name>
@@ -24,7 +23,7 @@
         <connection>scm:git:git@github.com:Marthym/scraphead.git</connection>
         <developerConnection>scm:git:git@github.com:Marthym/scraphead.git</developerConnection>
         <url>https://github.com/Marthym/scraphead</url>
-        <tag>1.3.5</tag>
+        <tag>1.4.0</tag>
     </scm>
     <developers>
         <developer>
@@ -76,7 +75,7 @@
         <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
         <versions-maven-plugin.version>2.16.0</versions-maven-plugin.version>
 
-        <surefire.argline.opens/>
+        <surefire.argline.opens />
     </properties>
 
     <dependencyManagement>
