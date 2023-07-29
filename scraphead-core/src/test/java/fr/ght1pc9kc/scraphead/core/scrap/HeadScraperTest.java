@@ -4,6 +4,8 @@ import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
 import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
 import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
+import fr.ght1pc9kc.scraphead.core.model.ex.HeadScrapingException;
+import fr.ght1pc9kc.scraphead.core.model.ex.NetworkScrapException;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
 import fr.ght1pc9kc.scraphead.core.scrap.collectors.MetaTitleDescrCollector;
@@ -180,7 +182,16 @@ class HeadScraperTest {
         when(webClient.send(any(ScrapRequest.class))).thenThrow(new IllegalArgumentException());
         URI page = URI.create("/relative/path");
         StepVerifier.create(tested.scrap(page).map(Metas::og))
-                .verifyComplete();
+                .verifyError(HeadScrapingException.class);
+    }
+
+    @Test
+    void should_avoid_crash_when_error_on_flux() {
+        reset(webClient);
+        when(webClient.send(any(ScrapRequest.class))).thenReturn(Mono.error(new IllegalArgumentException()));
+        URI page = URI.create("/relative/path");
+        StepVerifier.create(tested.scrap(page).map(Metas::og))
+                .verifyError(NetworkScrapException.class);
     }
 
     @Test
