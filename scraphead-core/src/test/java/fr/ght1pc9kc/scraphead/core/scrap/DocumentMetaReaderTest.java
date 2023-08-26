@@ -1,6 +1,7 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
 import fr.ght1pc9kc.scraphead.core.model.Metas;
+import fr.ght1pc9kc.scraphead.core.model.ex.OpenGraphException;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
 import fr.ght1pc9kc.scraphead.core.scrap.collectors.OpenGraphCollector;
@@ -21,6 +22,7 @@ import java.util.Locale;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_CONTENT;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_NAME;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_PROPERTY;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 class DocumentMetaReaderTest {
     private final DocumentMetaReader tested = new DocumentMetaReader(List.of(new OpenGraphCollector()));
@@ -56,6 +58,26 @@ class DocumentMetaReaderTest {
                         .description("Description de OG")
                         .locale(Locale.FRANCE)
                         .build());
+    }
+
+    @Test
+    void should_retrieve_errors() {
+        Document document = new Document("");
+        document.appendChildren(List.of(
+                new Element("meta")
+                        .attr(META_PROPERTY, "og:title").attr(META_CONTENT, "Title de OG"),
+                new Element("meta")
+                        .attr(META_PROPERTY, "og:type").attr(META_CONTENT, "product")
+        ));
+        Metas actual = tested.read(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force"), document);
+
+        assertAll(
+                () -> Assertions.assertThat(actual.resourceUrl()).isEqualTo(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force")),
+                () -> Assertions.assertThat(actual.og()).isEqualTo(
+                        OpenGraph.builder().title("Title de OG").build()),
+                () -> Assertions.assertThat(actual.errors().stream().findFirst())
+                        .isPresent().hasValueSatisfying(v -> Assertions.assertThat(v).isInstanceOf(OpenGraphException.class))
+        );
     }
 
     @Test

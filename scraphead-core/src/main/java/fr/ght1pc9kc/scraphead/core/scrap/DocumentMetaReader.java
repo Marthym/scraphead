@@ -4,7 +4,6 @@ import fr.ght1pc9kc.scraphead.core.model.Header;
 import fr.ght1pc9kc.scraphead.core.model.HtmlHead;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
 import fr.ght1pc9kc.scraphead.core.scrap.collectors.MetaDataCollector;
-import fr.ght1pc9kc.scraphead.core.scrap.collectors.WithErrors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
@@ -29,7 +28,7 @@ public final class DocumentMetaReader {
         Metas.MetasBuilder mBuilder = Metas.builder()
                 .resourceUrl(resourceUrl);
         for (var collector : collectors) {
-            WithErrors<? extends Header> meta = headDoc
+            var meta = headDoc
                     .filter((node, depth) -> (ALLOWED_NODE_NAME.contains(node.nodeName())
                             ? NodeFilter.FilterResult.CONTINUE : NodeFilter.FilterResult.REMOVE))
                     .getAllElements()
