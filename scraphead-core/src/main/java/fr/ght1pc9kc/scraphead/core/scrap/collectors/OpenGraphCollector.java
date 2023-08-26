@@ -1,13 +1,14 @@
 package fr.ght1pc9kc.scraphead.core.scrap.collectors;
 
-import fr.ght1pc9kc.scraphead.core.model.MetaType;
+import fr.ght1pc9kc.scraphead.core.model.ex.OpenGraphException;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
-import fr.ght1pc9kc.scraphead.core.scrap.MetaDataCollector;
 import fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Element;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -21,7 +22,8 @@ import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_NAME;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_PROPERTY;
 
 @Slf4j
-public final class OpenGraphCollector implements MetaDataCollector, Collector<Element, OpenGraph.OpenGraphBuilder, OpenGraph> {
+public final class OpenGraphCollector implements MetaDataCollector<OpenGraph>,
+        Collector<Element, WithErrors<OpenGraph.OpenGraphBuilder>, WithErrors<OpenGraph>> {
     private static final String OG_NAMESPACE = "og:";
     private static final String OG_TITLE = OG_NAMESPACE + "title";
     private static final String OG_TYPE = OG_NAMESPACE + "type";
@@ -31,24 +33,18 @@ public final class OpenGraphCollector implements MetaDataCollector, Collector<El
     private static final String OG_LOCALE = OG_NAMESPACE + "locale";
 
     @Override
-    public MetaType type() {
-        return MetaType.OPENGRAPH;
+    public Collector<Element, WithErrors<OpenGraph.OpenGraphBuilder>, WithErrors<OpenGraph>> collector() {
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T, C> Collector<T, ?, C> collector() {
-        return (Collector<T, ?, C>) this;
+    public Supplier<WithErrors<OpenGraph.OpenGraphBuilder>> supplier() {
+        return () -> new WithErrors<>(OpenGraph.builder(), new ArrayList<>());
     }
 
     @Override
-    public Supplier<OpenGraph.OpenGraphBuilder> supplier() {
-        return OpenGraph::builder;
-    }
-
-    @Override
-    public BiConsumer<OpenGraph.OpenGraphBuilder, Element> accumulator() {
-        return (builder, element) -> {
+    public BiConsumer<WithErrors<OpenGraph.OpenGraphBuilder>, Element> accumulator() {
+        return (builderWithErrors, element) -> {
             if (!"meta".equals(element.tagName())) {
                 return;
             }
@@ -56,50 +52,44 @@ public final class OpenGraphCollector implements MetaDataCollector, Collector<El
                     ? element.attr(META_PROPERTY) : element.attr(META_NAME);
 
             switch (property) {
-                case OG_TITLE:
-                    builder.title(element.attr(META_CONTENT));
-                    break;
-                case OG_TYPE:
+                case OG_TITLE -> builderWithErrors.object().title(element.attr(META_CONTENT));
+                case OG_TYPE -> {
                     try {
-                        builder.type(OGType.from(element.attr(META_CONTENT)));
-                    } catch (Exception e) {
-                        log.warn("{}: {}", e.getClass(), e.getLocalizedMessage());
+                        builderWithErrors.object().type(OGType.from(element.attr(META_CONTENT)));
+                    } catch (OpenGraphException e) {
+                        builderWithErrors.errors().add(e);
                     }
-                    break;
-                case OG_URL:
-                    OGScrapperUtils.toUrl(element.attr("abs:" + META_CONTENT))
-                            .ifPresent(builder::url);
-                    break;
-                case OG_IMAGE:
-                    OGScrapperUtils.toUri(element.attr("abs:" + META_CONTENT))
-                            .ifPresent(builder::image);
-                    break;
-                case OG_DESCRIPTION:
+                }
+                case OG_URL -> OGScrapperUtils.toUrl(element.attr("abs:" + META_CONTENT))
+                        .ifPresent(builderWithErrors.object()::url);
+                case OG_IMAGE -> OGScrapperUtils.toUri(element.attr("abs:" + META_CONTENT))
+                        .ifPresent(builderWithErrors.object()::image);
+                case OG_DESCRIPTION -> {
                     if (element.hasAttr(META_CONTENT)) {
-                        builder.description(element.attr(META_CONTENT));
+                        builderWithErrors.object().description(element.attr(META_CONTENT));
                     }
-                    break;
-                case OG_LOCALE:
+                }
+                case OG_LOCALE -> {
                     if (element.hasAttr(META_CONTENT)) {
-                        builder.locale(Locale.forLanguageTag(
+                        builderWithErrors.object().locale(Locale.forLanguageTag(
                                 element.attr(META_CONTENT).replace('_', '-')));
                     }
-                    break;
-                default:
+                }
+                default -> log.atTrace().log("Unknown property {}", property);
             }
         };
     }
 
     @Override
-    public BinaryOperator<OpenGraph.OpenGraphBuilder> combiner() {
+    public BinaryOperator<WithErrors<OpenGraph.OpenGraphBuilder>> combiner() {
         return (left, right) -> {
             throw new IllegalStateException("Unable to combine OpenGraph Builder !");
         };
     }
 
     @Override
-    public Function<OpenGraph.OpenGraphBuilder, OpenGraph> finisher() {
-        return OpenGraph.OpenGraphBuilder::build;
+    public Function<WithErrors<OpenGraph.OpenGraphBuilder>, WithErrors<OpenGraph>> finisher() {
+        return builderWithErrors -> new WithErrors<>(builderWithErrors.object().build(), List.copyOf(builderWithErrors.errors()));
     }
 
     @Override

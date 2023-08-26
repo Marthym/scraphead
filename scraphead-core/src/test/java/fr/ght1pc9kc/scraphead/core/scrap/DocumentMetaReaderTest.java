@@ -103,7 +103,7 @@ class DocumentMetaReaderTest {
         OpenGraph actual = tested.read(URI.create("https://blog.ght1pc9kc.fr/2023/test-the-force"), document).og();
 
         Assertions.assertThat(actual).isNotNull()
-                .extracting(a -> a.image).isEqualTo(URI.create("http://obiwan.kenobi.jedi/tatooine/featured.jpg"));
+                .extracting(OpenGraph::image).isEqualTo(URI.create("http://obiwan.kenobi.jedi/tatooine/featured.jpg"));
     }
 
     @ParameterizedTest

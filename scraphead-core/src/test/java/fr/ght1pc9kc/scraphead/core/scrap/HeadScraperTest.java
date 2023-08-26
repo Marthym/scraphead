@@ -1,5 +1,6 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
+import fr.ght1pc9kc.scraphead.core.HeadScraper;
 import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
 import fr.ght1pc9kc.scraphead.core.http.ScrapRequest;
 import fr.ght1pc9kc.scraphead.core.http.ScrapResponse;
@@ -8,7 +9,7 @@ import fr.ght1pc9kc.scraphead.core.model.ex.HeadScrapingException;
 import fr.ght1pc9kc.scraphead.core.model.ex.NetworkScrapException;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OGType;
 import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
-import fr.ght1pc9kc.scraphead.core.scrap.collectors.MetaTitleDescrCollector;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.HtmlHeadCollector;
 import fr.ght1pc9kc.scraphead.core.scrap.collectors.OpenGraphCollector;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.when;
 
 class HeadScraperTest {
     private final DocumentMetaReader ogReader = spy(new DocumentMetaReader(List.of(
-            new MetaTitleDescrCollector(),
+            new HtmlHeadCollector(),
             new OpenGraphCollector()
     )));
     private HeadScraperImpl tested;
@@ -50,7 +51,6 @@ class HeadScraperTest {
     private final ScrapClient webClient = mock(ScrapClient.class);
 
     @BeforeEach
-    @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     void setUp() {
         when(webClient.send(any(ScrapRequest.class))).thenAnswer(invocation -> {
             ScrapRequest request = invocation.getArgument(0, ScrapRequest.class);
@@ -130,10 +130,10 @@ class HeadScraperTest {
 
         Assertions.assertThat(actual).isNotNull();
         assertAll(
-                () -> Assertions.assertThat(actual.title).isEqualTo("Économiseur d'écran personnalisé avec XSecureLock"),
-                () -> Assertions.assertThat(actual.type).isEqualTo(OGType.ARTICLE),
-                () -> Assertions.assertThat(actual.image).isEqualTo(URI.create("https://d1g3mdmxf8zbo9.cloudfront.net/images/i3/xsecurelock@2x.jpg")),
-                () -> Assertions.assertThat(actual.locale).isEqualTo(Locale.FRANCE)
+                () -> Assertions.assertThat(actual.title()).isEqualTo("Économiseur d'écran personnalisé avec XSecureLock"),
+                () -> Assertions.assertThat(actual.type()).isEqualTo(OGType.ARTICLE),
+                () -> Assertions.assertThat(actual.image()).isEqualTo(URI.create("https://d1g3mdmxf8zbo9.cloudfront.net/images/i3/xsecurelock@2x.jpg")),
+                () -> Assertions.assertThat(actual.locale()).isEqualTo(Locale.FRANCE)
         );
     }
 
@@ -144,12 +144,12 @@ class HeadScraperTest {
 
         Assertions.assertThat(actual).isNotNull();
         assertAll(
-                () -> Assertions.assertThat(actual.title).isEqualTo("Panasonic proposera une semaine de travail de " +
+                () -> Assertions.assertThat(actual.title()).isEqualTo("Panasonic proposera une semaine de travail de " +
                         "quatre jours à ses employés au Japon, dans le but d'améliorer la productivité et d'attirer " +
                         "les meilleurs talents"),
-                () -> Assertions.assertThat(actual.type).isEqualTo(OGType.ARTICLE),
-                () -> Assertions.assertThat(actual.image).isEqualTo(URI.create("https://www.developpez.com/images/logos/emploi.png")),
-                () -> Assertions.assertThat(actual.locale).isEqualTo(Locale.FRANCE)
+                () -> Assertions.assertThat(actual.type()).isEqualTo(OGType.ARTICLE),
+                () -> Assertions.assertThat(actual.image()).isEqualTo(URI.create("https://www.developpez.com/images/logos/emploi.png")),
+                () -> Assertions.assertThat(actual.locale()).isEqualTo(Locale.FRANCE)
         );
     }
 
@@ -197,7 +197,7 @@ class HeadScraperTest {
     @Test
     void should_use_plugin() {
         URI page = URI.create("https://blog.ght1pc9kc.fr/og-head-test.html");
-        HeadScraperImpl pluginTested = new HeadScraperImpl(webClient, ogReader);
+        HeadScraper pluginTested = new HeadScraperImpl(webClient, ogReader);
         StepVerifier.create(pluginTested.scrap(ScrapRequest.builder(page)
                         .addHeader("X-Dummy", "test")
                         .addCookie("COOKIE_TEST", "test")

@@ -1,5 +1,6 @@
 package fr.ght1pc9kc.scraphead.core.scrap.collectors;
 
+import fr.ght1pc9kc.scraphead.core.model.HtmlHead;
 import org.assertj.core.api.Assertions;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -15,7 +16,7 @@ import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_NAME;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_REL;
 
 class MetaTitleDescrCollectorTest {
-    MetaTitleDescrCollector tested = new MetaTitleDescrCollector();
+    HtmlHeadCollector tested = new HtmlHeadCollector();
 
     @Test
     void should_collect_elements_links() {
@@ -40,16 +41,15 @@ class MetaTitleDescrCollectorTest {
                         .attr(META_REL, "shortlink").attr(META_HREF, "https://blog.ght1pc9kc.fr/")
         ));
 
-        String[] actual = document.getAllElements().stream().collect(tested);
+        WithErrors<HtmlHead> actual = document.getAllElements().stream().collect(tested);
 
-        Assertions.assertThat(actual).containsExactly(
+        Assertions.assertThat(actual.object()).isEqualTo(new HtmlHead(
                 "Title de title",
                 "Description of the description tag"
-        );
+        ));
     }
 
     @Test
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     void should_collect_parallel() {
         String baseUrl = "https://blog.ght1pc9kc.fr/";
         Document document = new Document(baseUrl);
