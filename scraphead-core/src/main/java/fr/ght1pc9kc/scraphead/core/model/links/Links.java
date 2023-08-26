@@ -1,24 +1,25 @@
 package fr.ght1pc9kc.scraphead.core.model.links;
 
+import fr.ght1pc9kc.scraphead.core.model.Header;
+import fr.ght1pc9kc.scraphead.core.model.MetaType;
 import lombok.Builder;
-import lombok.Generated;
 
 import java.net.URI;
 
+@Builder
 public record Links(
         URI icon,
         URI canonical,
         URI license,
         URI shortlink
-) {
-    @Builder
-    @SuppressWarnings("java:S6207")
-    public Links {
-        // Empty constructor for Lombok Builder
+) implements Header {
+    @Override
+    public Links links() {
+        return this;
     }
 
-    @Generated
-    public static class LinksBuilder {
-        // Only to allow javadoc with lombok
+    @Override
+    public MetaType metaType() {
+        return MetaType.LINK;
     }
 }

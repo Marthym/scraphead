@@ -1,10 +1,11 @@
 package fr.ght1pc9kc.scraphead.core.scrap.collectors;
 
-import fr.ght1pc9kc.scraphead.core.model.MetaType;
-import fr.ght1pc9kc.scraphead.core.scrap.MetaDataCollector;
+import fr.ght1pc9kc.scraphead.core.model.HtmlHead;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Element;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -13,7 +14,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 @Slf4j
-public final class MetaTitleDescrCollector implements MetaDataCollector, Collector<Element, String[], String[]> {
+public final class HtmlHeadCollector
+        implements MetaDataCollector<HtmlHead>, Collector<Element, WithErrors<HtmlHead.HtmlHeadBuilder>, WithErrors<HtmlHead>> {
     private static final String TAG_TITLE = "title";
     private static final String TAG_DESCRIPTION = "meta";
     private static final String ATTR_DESCRIPTION = "name";
@@ -21,47 +23,41 @@ public final class MetaTitleDescrCollector implements MetaDataCollector, Collect
     private static final String ATTR_CONTENT = "CONTENT";
 
     @Override
-    public MetaType type() {
-        return MetaType.META;
+    public Collector<Element, WithErrors<HtmlHead.HtmlHeadBuilder>, WithErrors<HtmlHead>> collector() {
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T, C> Collector<T, ?, C> collector() {
-        return (Collector<T, ?, C>) this;
+    public Supplier<WithErrors<HtmlHead.HtmlHeadBuilder>> supplier() {
+        return () -> new WithErrors<>(HtmlHead.builder(), new ArrayList<>());
     }
 
     @Override
-    public Supplier<String[]> supplier() {
-        return () -> new String[2];
-    }
-
-    @Override
-    public BiConsumer<String[], Element> accumulator() {
+    public BiConsumer<WithErrors<HtmlHead.HtmlHeadBuilder>, Element> accumulator() {
         return (builder, element) -> {
             if (TAG_TITLE.equals(element.tagName())) {
-                builder[0] = element.ownText();
+                builder.object().title(element.ownText());
             } else if (isDescription(element)) {
-                builder[1] = element.attr(ATTR_CONTENT);
+                builder.object().description(element.attr(ATTR_CONTENT));
             }
         };
     }
 
     @Override
-    public BinaryOperator<String[]> combiner() {
+    public BinaryOperator<WithErrors<HtmlHead.HtmlHeadBuilder>> combiner() {
         return (left, right) -> {
-            throw new IllegalStateException("Unable to combine Links Builder !");
+            throw new IllegalStateException("Unable to combine HtmlHead Builder !");
         };
     }
 
     @Override
-    public Function<String[], String[]> finisher() {
-        return Function.identity();
+    public Function<WithErrors<HtmlHead.HtmlHeadBuilder>, WithErrors<HtmlHead>> finisher() {
+        return builder -> new WithErrors<>(builder.object().build(), List.copyOf(builder.errors()));
     }
 
     @Override
     public Set<Characteristics> characteristics() {
-        return Set.of(Characteristics.UNORDERED, Characteristics.IDENTITY_FINISH);
+        return Set.of(Characteristics.UNORDERED);
     }
 
     private boolean isDescription(Element el) {
