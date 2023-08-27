@@ -3,6 +3,7 @@ package fr.ght1pc9kc.scraphead.core.model.opengraph;
 import fr.ght1pc9kc.scraphead.core.model.Header;
 import fr.ght1pc9kc.scraphead.core.model.MetaType;
 import lombok.Builder;
+import lombok.Generated;
 import lombok.With;
 
 import java.net.URI;
@@ -35,5 +36,10 @@ public record OpenGraph(
     @Override
     public MetaType metaType() {
         return MetaType.OPENGRAPH;
+    }
+
+    @Generated
+    public static class OpenGraphBuilder {
+        // Only to allow javadoc with lombok
     }
 }

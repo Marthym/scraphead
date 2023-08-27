@@ -3,6 +3,7 @@ package fr.ght1pc9kc.scraphead.core.model.links;
 import fr.ght1pc9kc.scraphead.core.model.Header;
 import fr.ght1pc9kc.scraphead.core.model.MetaType;
 import lombok.Builder;
+import lombok.Generated;
 
 import java.net.URI;
 
@@ -21,5 +22,10 @@ public record Links(
     @Override
     public MetaType metaType() {
         return MetaType.LINK;
+    }
+
+    @Generated
+    public static class LinksBuilder {
+        // Only to allow javadoc with lombok
     }
 }

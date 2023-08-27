@@ -325,7 +325,6 @@
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
-                            <sourcepath>${delombok.output}</sourcepath>
                             <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
                             <doclint>all,-missing</doclint>
                         </configuration>
