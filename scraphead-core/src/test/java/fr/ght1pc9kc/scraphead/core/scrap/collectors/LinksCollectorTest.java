@@ -40,9 +40,9 @@ class LinksCollectorTest {
                         .attr(META_REL, "shortlink").attr(META_HREF, "https://blog.ght1pc9kc.fr/")
         ));
 
-        Links actual = document.getAllElements().stream().collect(tested);
+        var actual = document.getAllElements().stream().collect(tested);
 
-        Assertions.assertThat(actual).isEqualTo(Links.builder()
+        Assertions.assertThat(actual.object()).isEqualTo(Links.builder()
                 .canonical(URI.create("https://blog.ght1pc9kc.fr/index.html"))
                 .icon(URI.create("https://blog.ght1pc9kc.fr/favicon.png"))
                 .license(URI.create("https://www.wtfpl.net/"))
@@ -51,7 +51,6 @@ class LinksCollectorTest {
     }
 
     @Test
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     void should_collect_parallel() {
         String baseUrl = "https://blog.ght1pc9kc.fr/";
         Document document = new Document(baseUrl);

@@ -1,8 +1,7 @@
 package fr.ght1pc9kc.scraphead.core.model.opengraph;
 
+import fr.ght1pc9kc.scraphead.core.model.ex.OpenGraphException;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.NoSuchElementException;
 
 public enum OGType {
     ARTICLE, BLOG, BOOK, PROFILE, WEBSITE, VIDEO, VIDEO_MOVIE, VIDEO_OTHER, MUSIC, OBJECT;
@@ -19,6 +18,6 @@ public enum OGType {
                 return ogType;
             }
         }
-        throw new NoSuchElementException(String.format("OGType for %s not found !", value));
+        throw new OpenGraphException("type", String.format("OGType for %s not found !", value));
     }
 }

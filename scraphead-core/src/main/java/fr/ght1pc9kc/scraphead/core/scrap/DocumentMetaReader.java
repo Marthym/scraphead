@@ -1,9 +1,9 @@
 package fr.ght1pc9kc.scraphead.core.scrap;
 
+import fr.ght1pc9kc.scraphead.core.model.Header;
+import fr.ght1pc9kc.scraphead.core.model.HtmlHead;
 import fr.ght1pc9kc.scraphead.core.model.Metas;
-import fr.ght1pc9kc.scraphead.core.model.links.Links;
-import fr.ght1pc9kc.scraphead.core.model.opengraph.OpenGraph;
-import fr.ght1pc9kc.scraphead.core.model.twitter.TwitterCard;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.MetaDataCollector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
@@ -18,7 +18,7 @@ import java.util.Set;
 public final class DocumentMetaReader {
     private static final Set<String> ALLOWED_NODE_NAME = Set.of(
             "#document", "#text", "html", "head", "body", "title", "style", "base", "link", "meta", "script", "noscript");
-    private final List<MetaDataCollector> collectors;
+    private final List<MetaDataCollector<? extends Header>> collectors;
 
     public Metas read(URI resourceUrl, Document headDoc) {
         if (collectors.isEmpty()) {
@@ -27,22 +27,23 @@ public final class DocumentMetaReader {
 
         Metas.MetasBuilder mBuilder = Metas.builder()
                 .resourceUrl(resourceUrl);
-        for (MetaDataCollector collector : collectors) {
-            Object meta = headDoc
+        for (var collector : collectors) {
+            var meta = headDoc
                     .filter((node, depth) -> (ALLOWED_NODE_NAME.contains(node.nodeName())
                             ? NodeFilter.FilterResult.CONTINUE : NodeFilter.FilterResult.REMOVE))
                     .getAllElements()
                     .stream().collect(collector.collector());
-            switch (collector.type()) {
-                case OPENGRAPH -> mBuilder.og((OpenGraph) meta);
-                case TWITTER_CARD -> mBuilder.twitter((TwitterCard) meta);
-                case LINK -> mBuilder.links((Links) meta);
-                case META -> {
-                    String[] strings = (String[]) meta;
-                    mBuilder.title(strings[0]).description(strings[1]);
+            switch (meta.object().metaType()) {
+                case OPENGRAPH -> mBuilder.og(meta.object().openGraph());
+                case TWITTER_CARD -> mBuilder.twitter(meta.object().twitterCard());
+                case LINK -> mBuilder.links(meta.object().links());
+                case HTML -> {
+                    HtmlHead htmlHead = meta.object().html();
+                    mBuilder.title(htmlHead.title()).description(htmlHead.description());
                 }
-                default -> log.debug("Meta type {} unknown !", collector.type());
+                default -> log.debug("Meta type {} unknown !", meta.object().metaType());
             }
+            meta.errors().forEach(mBuilder::error);
         }
 
         return mBuilder.build();

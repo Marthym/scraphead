@@ -4,7 +4,7 @@
 
     <groupId>fr.ght1pc9kc</groupId>
     <artifactId>scraphead</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <packaging>pom</packaging>
 
     <name>Scraphead</name>
@@ -23,7 +23,7 @@
         <connection>scm:git:git@github.com:Marthym/scraphead.git</connection>
         <developerConnection>scm:git:git@github.com:Marthym/scraphead.git</developerConnection>
         <url>https://github.com/Marthym/scraphead</url>
-        <tag>1.4.0</tag>
+        <tag>1.4.1</tag>
     </scm>
     <developers>
         <developer>
@@ -325,7 +325,6 @@
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
-                            <sourcepath>${delombok.output}</sourcepath>
                             <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
                             <doclint>all,-missing</doclint>
                         </configuration>

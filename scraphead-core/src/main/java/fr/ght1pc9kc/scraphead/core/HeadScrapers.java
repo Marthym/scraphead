@@ -1,11 +1,12 @@
 package fr.ght1pc9kc.scraphead.core;
 
 import fr.ght1pc9kc.scraphead.core.http.ScrapClient;
+import fr.ght1pc9kc.scraphead.core.model.Header;
 import fr.ght1pc9kc.scraphead.core.scrap.DocumentMetaReader;
 import fr.ght1pc9kc.scraphead.core.scrap.HeadScraperImpl;
-import fr.ght1pc9kc.scraphead.core.scrap.MetaDataCollector;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.HtmlHeadCollector;
 import fr.ght1pc9kc.scraphead.core.scrap.collectors.LinksCollector;
-import fr.ght1pc9kc.scraphead.core.scrap.collectors.MetaTitleDescrCollector;
+import fr.ght1pc9kc.scraphead.core.scrap.collectors.MetaDataCollector;
 import fr.ght1pc9kc.scraphead.core.scrap.collectors.OpenGraphCollector;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
@@ -43,7 +44,7 @@ public class HeadScrapers {
     @RequiredArgsConstructor
     public static class HeadScraperBuilder {
         private final ScrapClient webClient;
-        private final List<MetaDataCollector> collectors = new ArrayList<>(3);
+        private final List<MetaDataCollector<? extends Header>> collectors = new ArrayList<>(3);
 
         public HeadScraper build() {
             if (collectors.isEmpty()) {
@@ -55,7 +56,7 @@ public class HeadScrapers {
         }
 
         public HeadScraperBuilder useMetaTitleAndDescr() {
-            collectors.add(new MetaTitleDescrCollector());
+            collectors.add(new HtmlHeadCollector());
             return this;
         }
 
