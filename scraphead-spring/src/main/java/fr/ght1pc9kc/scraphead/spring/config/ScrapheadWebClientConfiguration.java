@@ -5,8 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.Http11SslContextSpec;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.tcp.SslProvider;
 
 import java.util.Set;
 
@@ -19,7 +19,7 @@ public class ScrapheadWebClientConfiguration {
     public WebClient scrapheadWebclient() {
         return WebClient.builder().clientConnector(new ReactorClientHttpConnector(
                 HttpClient.create()
-                        .secure(spec -> spec.sslContext(Http11SslContextSpec.forClient()))
+                        .secure(spec -> spec.sslContext(SslProvider.defaultClientProvider().getSslContext()))
                         .followRedirect(true)
                         .followRedirect((req, res) -> // 303 was not in the default code
                                 Set.of(301, 302, 303, 307, 308).contains(res.status().code()))
