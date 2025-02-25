@@ -16,11 +16,13 @@ import java.util.stream.Collector;
 
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_HREF;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_REL;
+import static java.util.Objects.isNull;
 
 @Slf4j
 public final class LinksCollector implements MetaDataCollector<Links>, Collector<Element, WithErrors<Links.LinksBuilder>, WithErrors<Links>> {
     private static final String REL_CANONICAL = "canonical";
     private static final String REL_ICON = "icon";
+    private static final String REL_SHORTCUT_ICON = "shortcut icon";
     private static final String REL_LICENSE = "license";
     private static final String REL_SHORTLINK = "shortlink";
 
@@ -45,8 +47,13 @@ public final class LinksCollector implements MetaDataCollector<Links>, Collector
             switch (relation) {
                 case REL_CANONICAL -> OGScrapperUtils.toUri(element.attr("abs:" + META_HREF))
                         .ifPresent(builder.object()::canonical);
-                case REL_ICON -> OGScrapperUtils.toUri(element.attr("abs:" + META_HREF))
-                        .ifPresent(builder.object()::icon);
+                case REL_ICON, REL_SHORTCUT_ICON -> {
+                    if (isNull(builder.object().build().icon())
+                            || "image/x-icon".equals(element.attr("type"))) {
+                        OGScrapperUtils.toUri(element.attr("abs:" + META_HREF))
+                                .ifPresent(builder.object()::icon);
+                    }
+                }
                 case REL_LICENSE -> OGScrapperUtils.toUri(element.attr("abs:" + META_HREF))
                         .ifPresent(builder.object()::license);
                 case REL_SHORTLINK -> OGScrapperUtils.toUri(element.attr("abs:" + META_HREF))

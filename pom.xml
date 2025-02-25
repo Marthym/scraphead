@@ -49,7 +49,7 @@
 
         <jetbrains.version>24.0.1</jetbrains.version>
         <jsoup.version>1.16.1</jsoup.version>
-        <lombok.version>1.18.28</lombok.version>
+        <lombok.version>1.18.36</lombok.version>
         <netty.version>1.1.2</netty.version>
         <reactor.version>3.5.8</reactor.version>
         <slf4j.version>2.0.7</slf4j.version>
