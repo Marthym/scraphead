@@ -15,6 +15,7 @@ import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_CONTENT;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_HREF;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_NAME;
 import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_REL;
+import static fr.ght1pc9kc.scraphead.core.scrap.OGScrapperUtils.META_TYPE;
 
 class LinksCollectorTest {
 
@@ -33,7 +34,8 @@ class LinksCollectorTest {
                 new Element(link, baseUrl)
                         .attr(META_REL, "icon").attr(META_HREF, "favicon.ico"),
                 new Element(link, baseUrl)
-                        .attr(META_REL, "icon").attr(META_HREF, "favicon.png"),
+                        .attr(META_REL, "icon").attr(META_TYPE, "image/x-icon")
+                        .attr(META_HREF, "favicon.png"),
                 new Element(link, baseUrl)
                         .attr(META_REL, "license").attr(META_HREF, "//www.wtfpl.net/"),
                 new Element(link, baseUrl)

@@ -4,7 +4,7 @@
     <parent>
         <artifactId>scraphead</artifactId>
         <groupId>fr.ght1pc9kc</groupId>
-        <version>1.4.1</version>
+        <version>1.4.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>scraphead-spring</artifactId>
@@ -70,6 +70,13 @@
             <groupId>org.mock-server</groupId>
             <artifactId>mockserver-netty</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <!-- Avoid dependency conflict with 4.1.118 from reactor-netty -->
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
