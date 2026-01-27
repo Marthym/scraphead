@@ -58,7 +58,7 @@
 
         <mockserver-netty.version>5.15.0</mockserver-netty.version>
         <junit.version>5.13.3</junit.version>
-        <assertj.version>3.27.3</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
         <mockito.version>5.18.0</mockito.version>
 
         <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
