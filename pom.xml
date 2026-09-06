@@ -48,13 +48,13 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <jetbrains.version>26.0.2</jetbrains.version>
-        <jsoup.version>1.21.1</jsoup.version>
+        <jsoup.version>1.23.1</jsoup.version>
         <lombok.version>1.18.38</lombok.version>
         <netty.version>1.2.7</netty.version>
         <reactor.version>3.7.7</reactor.version>
         <slf4j.version>2.0.17</slf4j.version>
-        <spring-boot.version>3.5.3</spring-boot.version>
-        <spring.version>6.2.7</spring.version>
+        <spring-boot.version>3.5.16</spring-boot.version>
+        <spring.version>6.2.19</spring.version>
 
         <mockserver-netty.version>5.15.0</mockserver-netty.version>
         <junit.version>5.13.3</junit.version>
